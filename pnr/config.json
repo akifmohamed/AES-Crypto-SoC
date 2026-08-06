@@ -1,0 +1,49 @@
+{
+  "DESIGN_NAME": "aes_soc",
+  "VERILOG_FILES": "dir::src/*.v",
+  "CLOCK_PORT": "clk",
+  "CLOCK_PERIOD": 20,
+  "CLOCK_NET": "clk",
+
+  "FP_SIZING": "absolute",
+  "DIE_AREA": "0 0 1000 1000",
+  "CORE_AREA": "50 50 950 950",
+  "CORE_UTILIZATION": 45,
+
+  "PL_TARGET_DENSITY_PCT": 45,
+
+  "FP_PDN_VPITCH": 15,
+  "FP_PDN_HPITCH": 15,
+  "FP_PDN_VSPACING": 3,
+  "FP_PDN_HSPACING": 3,
+
+  "GLB_RT_MAXLAYER": 5,
+  "GLB_RT_MINLAYER": 1,
+  "GRT_REPAIR_ANTENNAS": true,
+
+  "TAKE_GDS_SCROT": true,
+
+  "RUN_HEURISTIC_DIODE_INSERTION": true,
+
+  "CHECK_ASSIGN_STATEMENTS": 0,
+
+  "QUIT_ON_LVS_ERROR": 0,
+  "QUIT_ON_MAGIC_DRC": 0,
+  "QUIT_ON_TIMING_VIOLATIONS": 0,
+
+  "DESIGN_IS_CORE": false,
+
+  "RT_MAX_LAYER": "met4",
+
+  "VDD_NETS": ["VPWR"],
+  "GND_NETS": ["VGND"],
+  "VDD_PINS": ["VPWR"],
+  "GND_PINS": ["VGND"],
+
+  "SYNTH_CLK_DRIVING_CELL": "sky130_fd_sc_hd__inv_8",
+  "SYNTH_CLK_DRIVING_CELL_PIN": "Y",
+  "SYNTH_TIEHI_PORT": "sky130_fd_sc_hd__conb_1 HI",
+  "SYNTH_TIELO_PORT": "sky130_fd_sc_hd__conb_1 LO",
+
+  "PNR_SDC_FILE": "dir::../timing/constraints.sdc"
+}

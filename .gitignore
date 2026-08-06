@@ -1,0 +1,93 @@
+# VLSI / EDA ignores - Based on PipeCore-GDS .gitignore + AES SoC
+# Simulation
+*.vcd
+*.fst
+*.lxt
+*.shm
+waves.shm/
+simvision/
+*.wlf
+*.vpd
+
+# Yosys / Synthesis
+synth/*.log
+synth/netlist/
+synth/sky130.lib
+timing/sky130.lib
+*.log
+
+# OpenLane / PnR - huge runs folder (ignore but keep config)
+pnr/runs/
+pnr/src/
+*.lef
+*.def
+*.gds
+!gds/*.gds
+*.odb
+*.sdf
+!output/*.sdf
+
+# OpenSTA reports (keep but ignore large)
+timing/reports/*.rpt
+!timing/reports/.gitkeep
+
+# KLayout / Virtuoso
+*.gds.gz
+*.oas
+*.strm
+virtuoso/.cdslck
+virtuoso/cds.lib
+virtuoso/hierarchyEdit/
+# Virtuoso screenshots keep
+!virtuoso/screenshots/
+*.cdslck
+
+# FPGA
+fpga/*.bit
+fpga/*.bin
+fpga/*.bif
+fpga/.Xil/
+fpga/build/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+venv/
+.env
+.sw/
+
+# OS
+.DS_Store
+Thumbs.db
+*~
+*.bak
+
+# Reports (keep structure)
+reports/*.log
+!reports/.gitkeep
+
+# Temp
+/tmp/
+*.tmp
+/synth/__pycache__/
+
+# Nix (from PipeCore)
+result
+result-*
+/nix/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Home junk - never push HOME folder
+.cache/
+snap/
+.brave/
+.local/share/Trash/
+*.ldb
+*.log
+TransportSecurity
