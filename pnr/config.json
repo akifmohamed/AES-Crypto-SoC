@@ -1,0 +1,21 @@
+{
+    "DESIGN_NAME": "aes_soc",
+    "VERILOG_FILES": [
+        "dir::src/*.v"
+    ],
+    "CLOCK_PORT": "clk",
+    "CLOCK_PERIOD": 20.0,
+    "FP_SIZING": "absolute",
+    "DIE_AREA": "0 0 1000 1000",
+    "CORE_AREA": "50 50 950 950",
+    "FP_CORE_UTIL": 45,
+    "PL_TARGET_DENSITY": 0.50,
+    "PL_RESIZING": 1,
+    "PL_ROUTABILITY_DRIVEN": 1,
+    "CTS_TARGET_SKEW": 145,
+    "GRT_REPAIR_ANTENNAS": true,
+    "RUN_DRC": true,
+    "RUN_LVS": true,
+    "PDK": "sky130A",
+    "STD_CELL_LIBRARY": "sky130_fd_sc_hd"
+}

@@ -1,0 +1,31 @@
+# PDK & Library files
+synth/sky130.lib
+*.lib
+*.lef
+*.def
+*.spef
+
+# Generated netlists and reports (keep .gitkeep)
+synth/netlist/*
+!synth/netlist/.gitkeep
+timing/reports/*
+!timing/reports/.gitkeep
+reports/*
+!reports/.gitkeep
+pnr/runs/*
+!pnr/runs/.gitkeep
+virtuoso/screenshots/*
+!virtuoso/screenshots/.gitkeep
+
+# Simulation binaries
+tb/sim_*
+*.vcd
+*.lxt
+a.out
+
+# OS & system cache
+.cache/
+snap/
+__pycache__/
+*.pyc
+.DS_Store
