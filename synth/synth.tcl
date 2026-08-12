@@ -1,5 +1,4 @@
 read_liberty -lib -ignore_miss_dir -setattr fold_super_clbs synth/sky130.lib
-
 read_verilog rtl/crypto/aes_sbox.v
 read_verilog rtl/crypto/aes_inv_sbox.v
 read_verilog rtl/crypto/sub_bytes.v
@@ -20,7 +19,8 @@ hierarchy -check -top aes_soc
 proc; opt; fsm; opt; memory; opt
 techmap; opt
 dfflibmap -liberty synth/sky130.lib
-abc -liberty synth/sky130.lib
+abc -liberty synth/sky130.lib -dont_use *lpflow* -dont_use *clkinv* -dont_use *probe*
+insbuf -buf sky130_fd_sc_hd__buf_4 A X 16
 clean -purge
 tee -o synth/synth_report.txt stat -liberty synth/sky130.lib
-write_verilog -noattr synth/netlist/aes_soc_synth.v
+write_verilog -noattr -noexpr -simple-lhs synth/netlist/aes_soc_synth.v
