@@ -7,14 +7,18 @@ create_clock -name clk -period 20.0 [get_ports clk]
 set_clock_uncertainty 0.5 [get_clocks clk]
 
 # Input/output delays - 40% rule like before
+# NOTE: all_inputs includes clk; OpenSTA prints one harmless warning and
+# skips the clock port (correct behavior). remove_from_collection is NOT
+# available in this OpenSTA build.
 set_input_delay 8.0 -clock [get_clocks clk] [all_inputs]
 set_output_delay 8.0 -clock [get_clocks clk] [all_outputs]
 
 # False path for async reset (same as PipeCore fix)
 set_false_path -from [get_ports rst_n]
 
-# Hold fixing hint for PnR (you already learned this in Phase 4)
-set_fix_hold [all_clocks]
+# Hold fixing: NOT an SDC command in OpenSTA/OpenROAD.
+# OpenLane repairs hold automatically during PNR (repair_timing -hold).
+# (removed: set_fix_hold - Synopsys-only command, crashed STA)
 
 # Driving cell and load (optional, for realistic STA)
 # set_driving_cell -lib_cell sky130_fd_sc_hd__inv_2 [all_inputs]
