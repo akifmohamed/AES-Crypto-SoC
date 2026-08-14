@@ -1,36 +1,3 @@
-<<<<<<< HEAD
-# PDK & Library files
-synth/sky130.lib
-*.lib
-*.lef
-*.def
-*.spef
-
-# Generated netlists and reports (keep .gitkeep)
-synth/netlist/*
-!synth/netlist/.gitkeep
-timing/reports/*
-!timing/reports/.gitkeep
-reports/*
-!reports/.gitkeep
-pnr/runs/*
-!pnr/runs/.gitkeep
-virtuoso/screenshots/*
-!virtuoso/screenshots/.gitkeep
-
-# Simulation binaries
-tb/sim_*
-*.vcd
-*.lxt
-a.out
-
-# OS & system cache
-.cache/
-snap/
-__pycache__/
-*.pyc
-.DS_Store
-=======
 # VLSI / EDA ignores - Based on PipeCore-GDS .gitignore + AES SoC
 # Simulation
 *.vcd
@@ -124,4 +91,3 @@ snap/
 *.ldb
 *.log
 TransportSecurity
->>>>>>> 8a7d0f170172da4de0ed845c06b98da844d9d5b2

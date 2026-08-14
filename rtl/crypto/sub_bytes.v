@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 // SubBytes module - 16 parallel AES S-Box instantiations
 module sub_bytes (
     input  wire [127:0] in,
@@ -20,25 +19,4 @@ module sub_bytes (
     aes_sbox sbox_13 (.in(in[23:16]), .out(out[23:16]));
     aes_sbox sbox_14 (.in(in[15:8]), .out(out[15:8]));
     aes_sbox sbox_15 (.in(in[7:0]), .out(out[7:0]));
-=======
-// ─────────────────────────────────────────────────────────
-// SubBytes - 16 parallel S-Boxes
-// All 16 state bytes substituted in ONE cycle
-// HW cost: 16 * S-Box LUT (~400 gates each)
-// ─────────────────────────────────────────────────────────
-module sub_bytes (
-    input  wire [127:0] state_in,
-    output wire [127:0] state_out
-);
-    genvar i;
-    generate
-        for (i = 0; i < 16; i = i + 1) begin : gen_sbox
-            // Big-endian: byte 0 = bits [127:120]
-            aes_sbox u_sbox (
-                .in (state_in[127 - i*8 -: 8]),
-                .out(state_out[127 - i*8 -: 8])
-            );
-        end
-    endgenerate
->>>>>>> 8a7d0f170172da4de0ed845c06b98da844d9d5b2
 endmodule
