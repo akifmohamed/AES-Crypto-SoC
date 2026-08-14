@@ -13,7 +13,7 @@ An AES-128 encryption accelerator SoC designed in Verilog by a two-person team �
 | Metric | Result |
 |---|---|
 | Technology | Sky130 (`sky130_fd_sc_hd`), 130 nm |
-| Die / core | 1000 × 1000 µm (1 mm²) / 900 × 900 µm, 45% utilization target |
+| Die / core | 1000 × 1000 µm (1 mm²) / 900 × 900 µm, 45% planned, 20.2% achieved (162,993 um2; die sized for first-pass closure) |
 | Synthesis (Yosys) | **25,902 cells · 185,254 µm² · 8.3% sequential** |
 | Clock | 20 ns / 50 MHz |
 | Setup worst slack | **+14.07 ns** (nom_tt) |
