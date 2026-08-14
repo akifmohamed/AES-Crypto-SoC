@@ -7,10 +7,16 @@ Protocol:
 Demo shows 227x speedup vs software
 """
 
-import serial
+try:
+    import serial
+except ModuleNotFoundError:
+    serial = None
 import time
 import binascii
-from Crypto.Cipher import AES  # pip install pycryptodome for SW reference, optional
+try:
+    from Crypto.Cipher import AES
+except ModuleNotFoundError:
+    AES = None  # pip install pycryptodome for SW reference, optional
 
 # Config
 SERIAL_PORT = "/dev/ttyUSB0"  # Linux, for Windows use "COM3" etc.
