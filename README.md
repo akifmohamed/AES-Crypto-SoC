@@ -4,7 +4,7 @@
 
 ![flow](https://img.shields.io/badge/Flow-RTL--to--GDSII-blue) ![pdk](https://img.shields.io/badge/PDK-Sky130--130nm-lightgrey) ![timing](https://img.shields.io/badge/Timing-%2B14.07ns%20setup%20%2F%20%2B0.29ns%20hold-brightgreen) ![signoff](https://img.shields.io/badge/Signoff-DRC%20clean%20%E2%80%A2%20LVS%20match-brightgreen) ![nist](https://img.shields.io/badge/NIST%20FIPS--197-5%2F5%20vectors-green) ![speedup](https://img.shields.io/badge/Speedup-227.3%C3%97%20vs%20SW-red)
 
-An AES-128 encryption accelerator SoC written in Verilog from scratch, verified against official NIST test vectors, and implemented through a complete RTL-to-GDSII flow on the Sky130 130 nm open PDK. The iterative engine encrypts one 128-bit block in **11 cycles @ 50 MHz (220 ns)** versus ~50,000 ns for software AES on a typical MCU — a **227.3× speedup** for real-time IoT security.
+An AES-128 encryption accelerator SoC designed in Verilog by a two-person team — RTL/synthesis/STA by Nandikha, physical design/signoff/demo by Akif — verified against official NIST test vectors and implemented through a complete RTL-to-GDSII flow on the Sky130 130 nm open PDK. The iterative engine encrypts one 128-bit block in **11 cycles @ 50 MHz (220 ns)** versus ~50,000 ns for software AES on a typical MCU — a **227.3× speedup** for real-time IoT security.
 
 ---
 
