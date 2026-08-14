@@ -1,9 +1,0 @@
-# MMMC view for Innovus
-# Define library sets, timing conditions
-
-create_library_set -name slow.lib -timing {/path/to/pdk/lib/slow.lib}
-create_rc_corner -name rc_typ -cap_table /path/to/pdk/cap_table -temperature 25
-create_delay_corner -name delay_slow -library_set slow.lib -rc_corner rc_typ
-create_constraint_mode -name const_mode -sdc_files {../../cadence/synthesis/constraints.sdc}
-create_analysis_view -name av_slow -constraint_mode const_mode -delay_corner delay_slow
-set_analysis_view -setup {av_slow} -hold {av_slow}

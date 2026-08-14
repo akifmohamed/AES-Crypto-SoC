@@ -40,7 +40,7 @@
 
   "GLB_RT_MAXLAYER": 5,
   "GLB_RT_MINLAYER": 1,
-  "GRT_REPAIR_ANTENNAS": true,
+  "RUN_ANTENNA_REPAIR": true,
 
   "TAKE_GDS_SCROT": true,
 
