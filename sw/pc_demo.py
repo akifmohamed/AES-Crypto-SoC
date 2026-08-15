@@ -92,7 +92,7 @@ def main():
     print(f"Key:      {KEY_HEX}")
     print(f"Plain:    {PLAIN_HEX}")
     print(f"Expected: {EXPECTED_CIPHER_HEX}")
-    print(f"\nSpecs: 50MHz, 11 cycles = 220ns/block, ~8200 gates, 1mm2")
+    print(f"\nSpecs: 50MHz, 11 cycles = 220ns/block, 25,902 cells (185,254 um2), 1mm2")
     print(f"Software AES on MCU: ~50,000 ns/block")
     print(f"Speedup: 227x FASTER")
 

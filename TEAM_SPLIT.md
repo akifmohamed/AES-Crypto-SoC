@@ -4,7 +4,7 @@
 ### Project Overview (Recap from Master Note)
 - **Name:** AES-128 Hardware Crypto Accelerator SoC
 - **Speedup Story:** SW 50,000ns vs HW 220ns = 227x FASTER
-- **Design:** Iterative AES (1 round reused 10x = 11 cycles), 8.2K gates, 1mm2, 45% util, 50MHz, UART interface
+- **Design:** Iterative AES (1 round reused 10x = 11 cycles), 25,902 cells / 185,254 um2 measured, 1mm2 die (20.2% util achieved), 50MHz, UART interface
 - **NIST TV1 Must Memorize:** Key 2B7E151628AED2A6ABF7158809CF4F3C Plain 6BC1BEE22E409F96E93D7E117393172A Cipher 3AD77BB40D7A3660A89ECAF32466EF97
 - **Tools:** Yosys, OpenSTA, OpenLane 2.3.10, KLayout, Sky130 via Nix + Cadence Virtuoso (licensed viewing only) - No Genus/Innovus/Xcelium
 
@@ -19,12 +19,12 @@
 
 **Deliverables to Person B:**
 - `synth/netlist/aes_soc_synth.v` (optional - OpenLane can re-synth from RTL)
-- `timing/constraints.sdc` (REAL SDC with 20ns clock + set_fix_hold)
+- `timing/constraints.sdc` (20ns clock SDC; Synopsys-only set_fix_hold removed for OpenSTA portability)
 - `timing/reports/setup_report.txt` + `hold_report.txt`
-- Updated PROJECT_STATE.md Phase 3-4 numbers
+- (team state tracking kept private; public numbers live in README/docs)
 
 **Branch:** `feature/aes-rtl-synth-timing`
-**Tasks file:** `PERSON_A_TASKS.md`
+**Scope:** RTL, synthesis, STA
 
 **Interview Focus:**
 - SubBytes 16 S-Boxes parallel in 1 cycle, generate loop
@@ -41,8 +41,8 @@
 **Responsibility:** Build the physical chip, see it in Virtuoso, demo on FPGA.
 
 **Phases:**
-1. Phase 5: Floorplan - DIE 1000x1000um, 45% util, power grid
-2. Phase 6: Placement & CTS - Place ~8K gates, clock skew target 145ps
+1. Phase 5: Floorplan - DIE 1000x1000um, 45% util planned (20.2% achieved), power grid
+2. Phase 6: Placement & CTS - Place ~26K cells, clock skew target 145ps
 3. Phase 7: Routing & GDS - Route Metal1-4, DRC 0, LVS MATCH, export GDS
 4. Phase 8: Virtuoso Viewing - Import GDS into Virtuoso (licensed advantage!), 4 screenshots
 5. Phase 9: FPGA Demo LAST! - Basys3/iCEstick, UART demo showing 227x speedup
@@ -52,10 +52,10 @@
 - `virtuoso/screenshots/` 4 images
 - `fpga/basys3.xdc` bitstream (optional)
 - `gds/aes_soc.gds` final
-- Updated PROJECT_STATE.md Phase 5-9
+- (team state tracking kept private; public numbers live in README/docs)
 
 **Branch:** `feature/aes-pnr-gds-virtuoso`
-**Tasks file:** `PERSON_B_TASKS.md`
+**Scope:** PNR, signoff, Virtuoso, FPGA demo
 
 **Interview Focus:**
 - Die area, core area, utilization tradeoff
@@ -137,7 +137,7 @@ virtuoso &  # should open licensed Virtuoso!
 | PipeCore ALU | AES Crypto SoC (New) |
 |---|---|
 | Simple ALU, 8 ops, 2-stage pipeline | Complex crypto, 10 rounds, S-Box LUT, GF math |
-| 168 cells | ~8,200 cells (50x bigger, shows you can handle larger design) |
+| 168 cells | 25,902 cells measured (~150x bigger design) |
 | No industry crypto relevance | AES is everywhere (IoT, security) - hot topic |
 | No Virtuoso advantage story | Virtuoso licensed = BIG ADVANTAGE (most students don't have) |
 | No speedup story | 227x speedup story = impressive pitch |

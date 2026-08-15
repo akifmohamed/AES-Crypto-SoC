@@ -62,7 +62,7 @@ Additional views: [`docs/layout_views/`](docs/layout_views) (KLayout, PDK-colore
 ├── tb/             Testbenches: NIST vectors + SoC UART protocol
 ├── synth/          Yosys synthesis script + report (25,902 cells / 185,254 µm²)
 ├── timing/         OpenSTA scripts + SDC (20 ns clock, I/O delays, false paths)
-├── pnr/            OpenLane 2 config (1 mm² die, 45% util) + RTL source set
+├── pnr/            OpenLane 2 config (1 mm² die; 45% planned / 20.2% achieved) + RTL source set
 ├── gds/            Final GDS-II (aes_soc.gds, Git LFS)
 ├── docs/           Architecture, NIST verification, Virtuoso guide, flow doc,
 │                   one-page summary PDF, KLayout views, demo log

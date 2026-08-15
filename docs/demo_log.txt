@@ -6,7 +6,7 @@ Key:      2B7E151628AED2A6ABF7158809CF4F3C
 Plain:    6BC1BEE22E409F96E93D7E117393172A
 Expected: 3AD77BB40D7A3660A89ECAF32466EF97
 
-Specs: 50MHz, 11 cycles = 220ns/block, ~8200 gates, 1mm2
+Specs: 50MHz, 11 cycles = 220ns/block, 25,902 cells (185,254 um2), 1mm2
 Software AES on MCU: ~50,000 ns/block
 Speedup: 227x FASTER
 

@@ -132,7 +132,7 @@ COMMAND 0x55 - STATUS:
 - UART Clock: Same 50MHz, BAUD_DIV=434 gives 115200 baud (50M/115200=434)
 - For iCEstick 12MHz: BAUD_DIV=104 (12M/115200)
 
-### Gate Count Breakdown (Est.)
+### Gate Count Breakdown (Measured)
 
 - Measured (Yosys, sky130_fd_sc_hd): 25,902 cells / 185,254 µm²
 - Sequential 8.3% of area; S-Box combinational dominates (91.7%)
@@ -142,9 +142,9 @@ Why S-Box dominant? 256-entry LUT is large combinational.
 
 Optimization future: Use composite-field S-Box (Canright) ~ 1/3 area.
 
-### Timing Critical Path (STA will show)
+### Timing Critical Path (measured post-PNR)
 
-Likely: `plaintext_reg -> SubBytes (S-Box LUT) -> ShiftRows (wire) -> MixColumn (xor tree) -> AddRoundKey (xor) -> state_reg`
+Path: `plaintext_reg -> SubBytes (S-Box LUT) -> ShiftRows (wire) -> MixColumn (xor tree) -> AddRoundKey (xor) -> state_reg`
 
 Measured post-PNR: setup WNS +14.07 ns @ 20 ns period (fmax ≈ 168 MHz).
 
