@@ -8,8 +8,8 @@ set_property IOSTANDARD LVCMOS33 [get_ports clk]
 create_clock -add -name sys_clk_pin -period 10.00 -waveform {0 5} [get_ports clk]
 
 ## Reset - btnC (center button)
-set_property PACKAGE_PIN U18 [get_ports rst_n]
-set_property IOSTANDARD LVCMOS33 [get_ports rst_n]
+set_property PACKAGE_PIN U18 [get_ports btnC]
+set_property IOSTANDARD LVCMOS33 [get_ports btnC]
 # Active low, so need invert in design or use button logic
 
 ## UART pins - Basys3 uses FTDI USB-UART

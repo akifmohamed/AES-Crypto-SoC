@@ -22,7 +22,7 @@ An AES-128 encryption accelerator SoC designed in Verilog by a two-person team �
 | Antenna | 5 violations → automatic diode repair → 1 documented residual (met3, ratio 567 vs 400 limit) |
 | Routing | ~1.8 m total wire, ~374 k vias |
 | Latency / throughput | 11 cycles = 220 ns per block |
-| Speedup vs MCU software | **227.3×** (50,000 ns vs 220 ns) |
+| Speedup vs MCU software | **227.3×** representative (17-1,770x vs published MCU benchmarks; docs/SPEEDUP_BENCHMARK.md) |
 | Functional verification | **5/5 NIST FIPS-197 vectors** (TV1: key `2B7E…4F3C`, plain `6BC1…172A` → cipher `3AD7…EF97`) |
 | Deliverable | `gds/aes_soc.gds` (versioned with Git LFS) |
 
