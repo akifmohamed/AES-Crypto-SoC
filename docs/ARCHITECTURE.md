@@ -57,7 +57,7 @@
 **Iterative (Chosen):**
 - 1 round unit reused 10 times
 - Latency: 11 cycles = 220ns @50MHz
-- Area: ~8,200 gates, 1mm², low power
+- Area: 25,902 cells / 185,254 µm² measured (Yosys), 1 mm² die, low power
 - Reason: IoT target = area/power critical, still 227x faster than SW
 
 **Pipelined (Not Chosen):**
@@ -134,11 +134,9 @@ COMMAND 0x55 - STATUS:
 
 ### Gate Count Breakdown (Est.)
 
-- S-Box: ~400 gates x 16 = ~6400 gates (78% of area!)
-- Key Expansion: ~1000 gates
-- MixColumns: ~400 gates
-- FSM + registers + UART: ~400 gates
-- Total ~8200 gates
+- Measured (Yosys, sky130_fd_sc_hd): 25,902 cells / 185,254 µm²
+- Sequential 8.3% of area; S-Box combinational dominates (91.7%)
+- ShiftRows: 0 cells (pure wiring)
 
 Why S-Box dominant? 256-entry LUT is large combinational.
 
@@ -148,7 +146,7 @@ Optimization future: Use composite-field S-Box (Canright) ~ 1/3 area.
 
 Likely: `plaintext_reg -> SubBytes (S-Box LUT) -> ShiftRows (wire) -> MixColumn (xor tree) -> AddRoundKey (xor) -> state_reg`
 
-In Sky130, maybe 2-5ns, so 20ns period gives huge positive slack (+15ns) - can overclock to ~200MHz.
+Measured post-PNR: setup WNS +14.07 ns @ 20 ns period (fmax ≈ 168 MHz).
 
 ### Power Estimation
 

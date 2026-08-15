@@ -8,9 +8,5 @@ For main README, see `../README.md`
 
 For team flow:
 - `../TEAM_SPLIT.md` - 2-person split
-- `../PERSON_A_TASKS.md` - RTL/Synth/STA
-- `../PERSON_B_TASKS.md` - PNR/Virtuoso/FPGA
-- `../PERSON_A_HANDOVER.md` - Handover checklist
-- `../PROJECT_STATE.md` - PASTE AT TOP OF EVERY NEW CHAT
-- `../OPEN_SOURCE_FLOW.md` - Full Yosys/OpenSTA/OpenLane/Virtuoso flow
-- `../MASTER_RETRIEVAL_NOTE.md` - Original master note preserved
+- `OPEN_SOURCE_FLOW.md` - Full Yosys/OpenSTA/OpenLane/Virtuoso flow
+- `SPEEDUP_BENCHMARK.md` - speedup basis with published MCU benchmarks

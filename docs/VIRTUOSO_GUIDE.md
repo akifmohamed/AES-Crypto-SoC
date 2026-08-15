@@ -56,8 +56,8 @@ Files:
    - `Shift+E` - Return to top level
 
 6. **What to Screenshot for Resume/LinkedIn**
-   - Full chip view zoomed out (shows die area ~1mm2, 45% util)
-   - Zoomed in standard cell rows (shows ~8k gates placed)
+   - Full chip view zoomed out (die 1 mm2; utilization 45% planned / 20.2% achieved)
+   - Zoomed in standard cell rows (~26K cells placed)
    - Metal layers routing (show wires connecting S-Boxes)
    - Power rings around core (M4/M3)
    - Clock tree (if visible, buffers)
@@ -124,5 +124,5 @@ Q: "Why OpenLane if you have Virtuoso?"
 A: "Virtuoso license I have is for layout viewing/custom design only, not full digital flow (Innovus/Genus). So I used open-source for synthesis and PnR which I already mastered in PipeCore-GDS, and Virtuoso for final signoff and viewing - this is also common in industry where teams use mixed flows."
 
 Q: "What tech node?"
-A: "Sky130 130nm from Google/SkyWater PDK - same as previous project, so I could reuse my Nix environment. Die 1000x1000um ~1mm2, 45% utilization, ~8.2K gates."
+A: "Sky130 130nm from Google/SkyWater PDK - same as previous project, so I could reuse my Nix environment. Die 1000x1000um ~1mm2; 25,902 cells (185,254 um2); utilization 45% planned / 20.2% achieved."
 

@@ -102,10 +102,10 @@ sta timing/sta.tcl
 
 Check reports:
 - Setup slack should be +ve (e.g., +X ns MET)
-- Hold may be -ve pre-CTS (normal, you saw -0.14ns in PipeCore, OpenLane will fix with `set_fix_hold`)
+- Hold may be -ve pre-CTS (normal; OpenLane repairs hold automatically) - measured +0.29 ns post-PNR
 - Critical path: will be through S-Box + MixColumn chain (~? ns)
 
-If setup negative at 20ns (50MHz), try 10ns? Actually 20ns is easier. If still setup violation, your AES is too slow - but our design is iterative 1 round, so longest path is single round (~? maybe 2-3ns in Sky130, so 20ns should have large positive slack like +15ns).
+Measured on the official run: setup +14.07 ns / hold +0.29 ns @ 20 ns.
 
 #### Phase 5-7: PNR with OpenLane 2 (Person B flow from PipeCore)
 
