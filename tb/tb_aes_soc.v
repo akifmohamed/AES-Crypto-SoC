@@ -1,4 +1,4 @@
-// Full SoC testbench - UART protocol level
+// Full SoC testbench - UART protocol level (v2: measures encryption cycles + single check)
 `timescale 1ns/1ps
 
 module tb_aes_soc;
@@ -47,7 +47,8 @@ module tb_aes_soc;
             #1000; // gap
         end
     endtask
-          // Task to receive one byte from DUT TX (sample mid-bit, correct phase)
+
+    // Task to receive one byte from DUT TX (sample mid-bit, correct phase)
     task uart_receive_byte(output [7:0] b);
         integer i;
         begin
@@ -60,11 +61,11 @@ module tb_aes_soc;
             #BIT_PERIOD;              // skip stop bit
         end
     endtask
+
     reg [7:0] rx_buffer[0:31];
     integer rx_cnt;
     integer i;
-    reg rx_sampling;
-    // For full verification, just capture in VCD and print LED
+    time t_start;   // for cycle measurement
 
     initial begin
         $dumpfile("aes_soc.vcd");
@@ -78,7 +79,6 @@ module tb_aes_soc;
 
         $display("=== Testing STATUS command 0x55 ===");
         uart_send_byte(8'h55);
-        // Wait some time for response 0xAA - would need RX sampling logic but we check waveform
         # (BIT_PERIOD*12);
         $display("LEDs after STATUS: busy=%b done=%b error=%b", led_busy, led_done, led_error);
 
@@ -100,32 +100,26 @@ module tb_aes_soc;
         uart_send_byte(8'h2e); uart_send_byte(8'h40); uart_send_byte(8'h9f); uart_send_byte(8'h96);
         uart_send_byte(8'he9); uart_send_byte(8'h3d); uart_send_byte(8'h7e); uart_send_byte(8'h11);
         uart_send_byte(8'h73); uart_send_byte(8'h93); uart_send_byte(8'h17); uart_send_byte(8'h2a);
-        
-          
+
         $display("Waiting for encryption (11 cycles ~220ns + UART TX 16 bytes)");
+        // Measure the AES-core busy window (true encryption time)
+        wait (led_busy == 1);
+        t_start = $time;
+        wait (led_busy == 0);
+        $display("Encryption cycles (aes_busy): %0d (expect 11 -> 220 ns @ 50 MHz)", ($time - t_start)/20);
         // Wait for done
         wait (led_done == 1);
         $display("Encryption done! LED data (last byte): %h (expected 97)", led_data);
         if (led_data == 8'h97) $display("PASS cipher last byte matches!");
         else $display("FAIL last byte mismatch - check logic");
 
-               // DUT sends 0xAA status byte first, then 16 ciphertext bytes (see aes_soc.v state 4'd4/4'd5)
+        // DUT sends 0xAA status byte first, then 16 ciphertext bytes (aes_soc.v state 4'd4/4'd5)
         $display("DUT TX starts (0xAA status + 16 ciphertext bytes)");
         uart_receive_byte(rx_buffer[16]);  // discard the 0xAA status byte
         for (i=0;i<16;i=i+1) begin
             uart_receive_byte(rx_buffer[i]);
         end
         $display("Status byte: %02h", rx_buffer[16]);
-
-        if (rx_buffer[0]==8'h3A && rx_buffer[1]==8'hD7 && rx_buffer[2]==8'h7B && rx_buffer[3]==8'hB4 &&
-            rx_buffer[4]==8'h0D && rx_buffer[5]==8'h7A && rx_buffer[6]==8'h36 && rx_buffer[7]==8'h60 &&
-            rx_buffer[8]==8'hA8 && rx_buffer[9]==8'h9E && rx_buffer[10]==8'hCA && rx_buffer[11]==8'hF3 &&
-            rx_buffer[12]==8'h24 && rx_buffer[13]==8'h66 && rx_buffer[14]==8'hEF && rx_buffer[15]==8'h97)
-            $display("PASS: full 16-byte ciphertext matches NIST TV1");
-        else begin
-            $display("FAIL: ciphertext mismatch");
-            for (i=0;i<16;i=i+1) $display("  rx[%0d] = %02h", i, rx_buffer[i]);
-        end
 
         if (rx_buffer[0]==8'h3A && rx_buffer[1]==8'hD7 && rx_buffer[2]==8'h7B && rx_buffer[3]==8'hB4 &&
             rx_buffer[4]==8'h0D && rx_buffer[5]==8'h7A && rx_buffer[6]==8'h36 && rx_buffer[7]==8'h60 &&
