@@ -46,7 +46,7 @@ cycles: 10 (200 ns @ 50 MHz) — measured on FPGA
 
 **LEDs (LD0–LD7 = ciphertext MSB):** `1001 0111` = `0x97` — exact match to the NIST TV1 ciphertext, held visible by a latch in the FPGA wrapper (the raw SoC asserts the result for only ~1.5 ms, too fast for the eye).
 
-![Basys3 demo — AES-128 NIST TV1, LEDs 0x97](docs/basys3_demo_0x97.jpg)
+![Basys3 demo — AES-128 NIST TV1, LEDs 0x97](docs/basys3_demo_0x97.jpeg)
 
 | Signal | LEDs | On TV1 |
 |---|---|---|
