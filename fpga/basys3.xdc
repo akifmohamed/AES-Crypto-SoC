@@ -20,23 +20,33 @@ set_property PACKAGE_PIN B18 [get_ports uart_rx_pin]
 set_property IOSTANDARD LVCMOS33 [get_ports uart_rx_pin]
 
 ## LEDs for status
-set_property PACKAGE_PIN U16 [get_ports led_busy]
+## LEDs - data on LD0..LD7, status on LD13..LD15
+# led_data[7:0] -> LD0..LD7
+set_property PACKAGE_PIN U16 [get_ports led_data[0]]
+set_property IOSTANDARD LVCMOS33 [get_ports led_data[0]]
+set_property PACKAGE_PIN E19 [get_ports led_data[1]]
+set_property IOSTANDARD LVCMOS33 [get_ports led_data[1]]
+set_property PACKAGE_PIN U19 [get_ports led_data[2]]
+set_property IOSTANDARD LVCMOS33 [get_ports led_data[2]]
+set_property PACKAGE_PIN V19 [get_ports led_data[3]]
+set_property IOSTANDARD LVCMOS33 [get_ports led_data[3]]
+set_property PACKAGE_PIN W18 [get_ports led_data[4]]
+set_property IOSTANDARD LVCMOS33 [get_ports led_data[4]]
+set_property PACKAGE_PIN U15 [get_ports led_data[5]]
+set_property IOSTANDARD LVCMOS33 [get_ports led_data[5]]
+set_property PACKAGE_PIN U14 [get_ports led_data[6]]
+set_property IOSTANDARD LVCMOS33 [get_ports led_data[6]]
+set_property PACKAGE_PIN V14 [get_ports led_data[7]]
+set_property IOSTANDARD LVCMOS33 [get_ports led_data[7]]
+
+# status LEDs -> LD13, LD14, LD15
+set_property PACKAGE_PIN N3  [get_ports led_busy]
 set_property IOSTANDARD LVCMOS33 [get_ports led_busy]
-
-set_property PACKAGE_PIN E19 [get_ports led_done]
+set_property PACKAGE_PIN L1  [get_ports led_done]
 set_property IOSTANDARD LVCMOS33 [get_ports led_done]
-
-set_property PACKAGE_PIN U19 [get_ports led_error]
+set_property PACKAGE_PIN P1  [get_ports led_error]
 set_property IOSTANDARD LVCMOS33 [get_ports led_error]
 
-set_property PACKAGE_PIN V19 [get_ports led_data[0]]
-set_property PACKAGE_PIN W18 [get_ports led_data[1]]
-set_property PACKAGE_PIN U15 [get_ports led_data[2]]
-set_property PACKAGE_PIN U14 [get_ports led_data[3]]
-set_property PACKAGE_PIN V14 [get_ports led_data[4]]
-set_property PACKAGE_PIN V13 [get_ports led_data[5]]
-set_property PACKAGE_PIN W13 [get_ports led_data[6]]
-set_property PACKAGE_PIN V15 [get_ports led_data[7]]
-set_property IOSTANDARD LVCMOS33 [get_ports led_data[*]]
-
 ## Clock divider to get 50MHz from 100MHz - if using on-chip divider, comment out and use MMCM
+
+
