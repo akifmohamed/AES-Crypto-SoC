@@ -129,4 +129,3 @@ module mbist_ctrl #(
     endtask
 
 endmodule
-
