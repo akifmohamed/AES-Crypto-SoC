@@ -1,21 +1,6 @@
-// mbist_ctrl.v — Memory BIST controller running the March C- algorithm
-// on a 256x8 SRAM (address width 8, data width 8).
-//
-// March C- (11n) — the standard 11-step march:
-//   Step 1:  up    W0
-//   Step 2:  up    R0, W1
-//   Step 3:  up    R1, W0
-//   Step 4:  down  R0, W1
-//   Step 5:  down  R1, W0
-//   Step 6:  down  R0
-// (Wx = write x, Rx = read-and-check x)
-//
-// Ports:
-//   go        : start a BIST run (pulse)
-//   done      : high when BIST finished
-//   pass      : high if no fault found
-//   fail      : high if a fault was detected (sticky until reset)
-//   fault_addr: address of first fault (for debug)
+// mbist_ctrl_v2.v — March C- BIST controller for 256x8 SRAM (v2: sync-RAM-safe)
+// FIX v2: reads are pipelined one cycle — set addr, then sample m_dout next
+// cycle — so it works with synchronous-read RAMs (iverilog + Vivado).
 `timescale 1ns/1ps
 
 module mbist_ctrl #(
@@ -25,12 +10,10 @@ module mbist_ctrl #(
     input  wire        clk,
     input  wire        rst_n,
     input  wire        go,
-    // memory interface (connected to wrapper's MBIST port)
     output reg         m_we,
     output reg  [AW-1:0] m_addr,
     output reg  [DW-1:0] m_din,
     input  wire [DW-1:0] m_dout,
-    // results
     output reg         done,
     output reg         pass,
     output reg         fail,
@@ -41,61 +24,43 @@ module mbist_ctrl #(
 
     reg [2:0]  state;
     reg [AW-1:0] addr;
-    reg        up;              // direction: 1=up (0..max), 0=down (max..0)
-    reg [DW-1:0] exp;           // expected data
-    reg        phase;           // 0 = first op of step, 1 = second op of step
-    integer    i;
+    reg        up;
+    reg        phase;          // 0 = first op, 1 = second op of a step
+    reg [DW-1:0] rd_data;      // pipelined read data (sampled 1 cycle after addr)
 
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
-            state      <= S_IDLE;
-            addr       <= 0;
-            up         <= 1;
-            exp        <= 0;
-            phase      <= 0;
-            m_we       <= 0;
-            m_addr     <= 0;
-            m_din      <= 0;
-            done       <= 0;
-            pass       <= 0;
-            fail       <= 0;
-            fault_addr <= 0;
+            state <= S_IDLE; addr <= 0; up <= 1; phase <= 0;
+            rd_data <= 0;
+            m_we <= 0; m_addr <= 0; m_din <= 0;
+            done <= 0; pass <= 0; fail <= 0; fault_addr <= 0;
         end else begin
-            // defaults
             m_we <= 0;
+            // sample read data every cycle (works with sync RAM)
+            rd_data <= m_dout;
             case (state)
                 S_IDLE: begin
                     done <= 0; pass <= 0; fail <= 0;
-                    if (go) begin
-                        state <= S_W0;
-                        addr  <= 0;
-                        up    <= 1;
-                    end
+                    if (go) begin state <= S_W0; addr <= 0; up <= 1; end
                 end
                 // ---- Step 1: up W0 ----
                 S_W0: begin
-                    m_we   <= 1;
-                    m_addr <= addr;
-                    m_din  <= 0;
-                    if (up) begin
-                        if (addr == {AW{1'b1}}) begin state <= S_R0W1; addr <= 0; up <= 1; phase <= 0; end
-                        else addr <= addr + 1;
-                    end
+                    m_we <= 1; m_addr <= addr; m_din <= 0;
+                    if (addr == {AW{1'b1}}) begin state <= S_R0W1; addr <= 0; up <= 1; phase <= 0; end
+                    else addr <= addr + 1;
                 end
                 // ---- Step 2: up R0, W1 ----
                 S_R0W1: begin
                     if (!phase) begin
-                        // read and check 0
-                        m_we   <= 0;
-                        m_addr <= addr;
-                        if (m_dout != 0) begin fail_state(addr); end
-                        phase  <= 1;
+                        // cycle A: address out
+                        m_we <= 0; m_addr <= addr;
+                        phase <= 1;
                     end else begin
+                        // cycle B: check sampled data (addr was set last cycle)
+                        if (rd_data != 0) begin fail_state(addr); end
                         // write 1
-                        m_we   <= 1;
-                        m_addr <= addr;
-                        m_din  <= {DW{1'b1}};
-                        phase  <= 0;
+                        m_we <= 1; m_addr <= addr; m_din <= {DW{1'b1}};
+                        phase <= 0;
                         if (addr == {AW{1'b1}}) begin state <= S_R1W0; addr <= 0; up <= 1; phase <= 0; end
                         else addr <= addr + 1;
                     end
@@ -103,15 +68,12 @@ module mbist_ctrl #(
                 // ---- Step 3: up R1, W0 ----
                 S_R1W0: begin
                     if (!phase) begin
-                        m_we   <= 0;
-                        m_addr <= addr;
-                        if (m_dout != {DW{1'b1}}) begin fail_state(addr); end
-                        phase  <= 1;
+                        m_we <= 0; m_addr <= addr;
+                        phase <= 1;
                     end else begin
-                        m_we   <= 1;
-                        m_addr <= addr;
-                        m_din  <= 0;
-                        phase  <= 0;
+                        if (rd_data != {DW{1'b1}}) begin fail_state(addr); end
+                        m_we <= 1; m_addr <= addr; m_din <= 0;
+                        phase <= 0;
                         if (addr == {AW{1'b1}}) begin state <= S_D_R0W1; addr <= {AW{1'b1}}; up <= 0; phase <= 0; end
                         else addr <= addr + 1;
                     end
@@ -119,15 +81,12 @@ module mbist_ctrl #(
                 // ---- Step 4: down R0, W1 ----
                 S_D_R0W1: begin
                     if (!phase) begin
-                        m_we   <= 0;
-                        m_addr <= addr;
-                        if (m_dout != 0) begin fail_state(addr); end
-                        phase  <= 1;
+                        m_we <= 0; m_addr <= addr;
+                        phase <= 1;
                     end else begin
-                        m_we   <= 1;
-                        m_addr <= addr;
-                        m_din  <= {DW{1'b1}};
-                        phase  <= 0;
+                        if (rd_data != 0) begin fail_state(addr); end
+                        m_we <= 1; m_addr <= addr; m_din <= {DW{1'b1}};
+                        phase <= 0;
                         if (addr == 0) begin state <= S_D_R1W0; addr <= {AW{1'b1}}; up <= 0; phase <= 0; end
                         else addr <= addr - 1;
                     end
@@ -135,47 +94,39 @@ module mbist_ctrl #(
                 // ---- Step 5: down R1, W0 ----
                 S_D_R1W0: begin
                     if (!phase) begin
-                        m_we   <= 0;
-                        m_addr <= addr;
-                        if (m_dout != {DW{1'b1}}) begin fail_state(addr); end
-                        phase  <= 1;
+                        m_we <= 0; m_addr <= addr;
+                        phase <= 1;
                     end else begin
-                        m_we   <= 1;
-                        m_addr <= addr;
-                        m_din  <= 0;
-                        phase  <= 0;
+                        if (rd_data != {DW{1'b1}}) begin fail_state(addr); end
+                        m_we <= 1; m_addr <= addr; m_din <= 0;
+                        phase <= 0;
                         if (addr == 0) begin state <= S_D_R0; addr <= {AW{1'b1}}; up <= 0; phase <= 0; end
                         else addr <= addr - 1;
                     end
                 end
                 // ---- Step 6: down R0 ----
                 S_D_R0: begin
-                    m_we   <= 0;
-                    m_addr <= addr;
-                    if (m_dout != 0) begin fail_state(addr); end
-                    if (addr == 0) begin
-                        state <= S_DONE;
-                        done  <= 1;
-                        pass  <= 1;
-                    end else addr <= addr - 1;
+                    if (!phase) begin
+                        m_we <= 0; m_addr <= addr;
+                        phase <= 1;
+                    end else begin
+                        if (rd_data != 0) begin fail_state(addr); end
+                        phase <= 0;
+                        if (addr == 0) begin state <= S_DONE; done <= 1; pass <= 1; end
+                        else addr <= addr - 1;
+                    end
                 end
-                S_DONE: begin
-                    // hold done/pass; go again to re-run
-                    if (go) begin state <= S_IDLE; end
-                end
+                S_DONE: begin if (go) state <= S_IDLE; end
                 default: state <= S_IDLE;
             endcase
         end
     end
 
-    // helper: record fault and jump to DONE
     task fail_state(input [AW-1:0] a);
         begin
-            fail       <= 1;
-            fault_addr <= a;
-            state      <= S_DONE;
-            done       <= 1;
+            fail <= 1; fault_addr <= a; state <= S_DONE; done <= 1;
         end
     endtask
 
 endmodule
+
