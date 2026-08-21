@@ -5,11 +5,8 @@
   "CLOCK_PERIOD": 20,
   "CLOCK_NET": "clk",
 
-  "FP_SIZING": "absolute",
-  "DIE_AREA": "0 0 750 750",
-  "CORE_AREA": "50 50 700 700",
+  "FP_SIZING": "relative",      // let OpenLane size the die from CORE_UTILIZATION
   "CORE_UTILIZATION": 54,
-
   "PL_TARGET_DENSITY_PCT": 54,
 
   "FP_PDN_VPITCH": 15,
