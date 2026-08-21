@@ -14,8 +14,8 @@ module tb_mbist;
     reg [7:0] f_addr, f_din;
     wire [7:0] f_dout;
 
-    reg m_we;
-    reg [7:0] m_addr, m_din;
+    wire m_we;
+    wire [7:0] m_addr, m_din;
     wire [7:0] m_dout;
 
     mbist_ctrl u_mbist (
