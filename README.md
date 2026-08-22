@@ -1,167 +1,169 @@
 # AES-128 Crypto Accelerator SoC
 
-**Full RTL → GDSII on Sky130 · Timing-closed · DRC-clean / LVS-match · NIST FIPS-197 verified · 227× faster than software · FPGA demo verified on hardware**
+**Full RTL -> GDSII on Sky130 · Timing-closed (9 corners, 0 violations) · DRC clean / LVS match · DFT: 745/745 scan-mapped + March C- MBIST · 4/4 NIST known-answer vectors · 200 ns measured on FPGA · Post-layout power analysis**
 
-![flow](https://img.shields.io/badge/Flow-RTL--to--GDSII-blue) ![pdk](https://img.shields.io/badge/PDK-Sky130--130nm-lightgrey) ![timing](https://img.shields.io/badge/Timing-%2B14.07ns%20setup%20%2F%20%2B0.29ns%20hold-brightgreen) ![signoff](https://img.shields.io/badge/Signoff-DRC%20clean%20%E2%80%A2%20LVS%20match-brightgreen) ![nist](https://img.shields.io/badge/NIST%20FIPS--197-5%2F5%20vectors-green) ![speedup](https://img.shields.io/badge/Speedup-250%C3%97%20vs%20SW-red) ![fpga](https://img.shields.io/badge/FPGA%20demo-Basys3%20verified-brightgreen)
+![flow](https://img.shields.io/badge/Flow-RTL--to--GDSII-blue) ![pdk](https://img.shields.io/badge/PDK-Sky130--130nm-lightgrey) ![timing](https://img.shields.io/badge/Timing-0%20violations%20%2B7.22ns%20worst%20corner-brightgreen) ![signoff](https://img.shields.io/badge/Signoff-DRC%20clean%20%E2%80%A2%20LVS%20match-brightgreen) ![nist](https://img.shields.io/badge/NIST-4%2F4%20KAT%20vectors-green) ![dft](https://img.shields.io/badge/DFT-745%2F745%20scan%20%2B%20MBIST-blueviolet) ![fpga](https://img.shields.io/badge/FPGA%20demo-Basys3%20measured-brightgreen)
 
-An AES-128 encryption accelerator SoC designed in Verilog by a two-person team — RTL/synthesis/STA by Nandikha, physical design/signoff/demo by Akif — verified against official NIST test vectors and implemented through a complete RTL-to-GDSII flow on the Sky130 130 nm open PDK, then taken to a **real FPGA board (Digilent Basys3) and verified end-to-end on hardware — including an on-chip measurement of the encryption time**. The iterative engine encrypts one 128-bit block in **10 cycles = 200 ns @ 50 MHz (measured on FPGA)** versus ~50,000 ns for software AES on a typical MCU — a **250× speedup** for real-time IoT security.
-
----
-
-## Measured Results
-
-| Metric | Result |
-|---|---|
-| Technology | Sky130 (`sky130_fd_sc_hd`), 130 nm |
-| Die / core | 1000 × 1000 µm (1 mm²) / 900 × 900 µm, 45% planned, 20.2% achieved (162,993 um2; die sized for first-pass closure) |
-| Synthesis (Yosys) | **25,902 cells · 185,254 µm² · 8.3% sequential** |
-| Clock | 20 ns / 50 MHz |
-| Setup worst slack | **+14.07 ns** (nom_tt) |
-| Hold worst slack | **+0.29 ns** (nom_tt) |
-| DRC / LVS | **Clean / Match** |
-| Antenna | 5 violations → automatic diode repair → 1 documented residual (met3, ratio 567 vs 400 limit) |
-| Routing | ~1.8 m total wire, ~374 k vias |
-| Latency / throughput | **10 cycles = 200 ns @ 50 MHz — measured on FPGA (aes_busy window)**; datapath = initial AddRoundKey + 10 rounds (11 ops) |
-| Speedup vs MCU software | **250×** (50,000 / 200 ns) representative (17-1,770x vs published MCU benchmarks; docs/SPEEDUP_BENCHMARK.md) |
-| Functional verification | **5/5 NIST FIPS-197 vectors** (TV1: key `2B7E…4F3C`, plain `6BC1…172A` → cipher `3AD7…EF97`) |
-| Deliverable | `gds/aes_soc.gds` (versioned with Git LFS) |
+An AES-128 encryption accelerator SoC built by a two-person team (RTL/synthesis/STA by **Nandikha M**, physical design/DFT/signoff/demo by **Akif Mohamed J**): verified against NIST known-answer vectors, implemented through a complete open-source RTL-to-GDSII flow on Sky130, measured on a real FPGA board, and extended in v2 with design-for-test — memory BIST plus full scan-cell mapping — and post-layout power analysis. Every number below traces to a committed testbench or run log.
 
 ---
 
-## FPGA Demo — Basys3 Hardware Verification (NIST TV1) ✅
+## Results (v2, all values from artifacts)
 
-**Verified on hardware — 20 Aug 2026** on a Digilent **Basys3** (Artix-7 XC7A35T, `xc7a35tcpg236-1`) at 50 MHz (100 MHz board clock divided in the wrapper). The SoC was programmed via Vivado 2017.4 and driven over USB-UART (115200 8N1).
+| Metric | Baseline (no DFT) | DFT-enabled |
+|---|---|---|
+| Die / core | 240,307 / 224,240 um2 | 326,366 / 307,825 um2 |
+| Core utilization | **67.6%** | 51.9% (compensated for scan-cell area) |
+| Sequential elements | 745 flip-flops | **745/745 scan-mapped (100%)**: 731 `sdfrtp_2` + 14 `sdfsbp_2` |
+| Setup slack (worst / tt) | -- / +14.07 ns | **+7.22 ns / +14.06 ns** |
+| Hold slack (worst) | +0.29 ns | +0.107 ns |
+| Timing violations | 0 | **0 across all 9 corners** |
+| DRC (Magic + KLayout) | 0 | **0** |
+| LVS | match | **match** |
+| Antenna | 2 marginal residuals (met3 414.9/400, met1 411.2/400) | 1 net + 1 pin, documented |
+| Wirelength | -- | 560,956 um (routing: 16062 -> 0 DRC in 7 iterations) |
+| IR drop worst | -- | 0.021% |
+| Power (analysis, activity 0.1) | -- | **6.08 mW tt / 4.94 ss / 7.00 ff = 0.122 mW/MHz, 1.22 nJ/block** |
+| MBIST | March C-, fault-injection verified (stuck-at-0 @ addr 42 detected) | same |
 
-**UART result (host script `fpga/uart_test.py`):**
+**Latency / throughput (measured):** 10 cycles = **200 ns @ 50 MHz** = 0.64 Gbps — counted by an in-design cycle counter on the FPGA and independently reproduced in simulation (`tb/tb_aes_soc_v2_1.v` prints the same 10-cycle busy window).
+
+**Software comparison (cited, not invented):** measured mbedTLS AES-128 on Cortex-M4 = 71 cycles/byte = 1,136 cycles/block; fastest published bitsliced = 80 cycles/byte = 1,280 cycles/block. Against this design's 10 cycles/block: **114x (vs measured mbedTLS) to 128x (vs best published software)** in cycle count. Details: `docs/SPEEDUP_BENCHMARK.md`.
+
+**Functional verification:** 4/4 known-answer vectors — NIST SP 800-38A ECB TV1, FIPS-197 Appendix B, all-zero KAT, all-ones KAT (`tb/tb_aes_core_v2.v`, Icarus Verilog 11.0 and 12.0). On FPGA hardware: NIST TV1 end-to-end (UART + LEDs).
+
+---
+
+## FPGA Demo - Basys3 Hardware Verification (NIST TV1)
+
+Verified on hardware (20 Aug 2026), Digilent Basys3 (Artix-7 XC7A35T) at 50 MHz, driven over USB-UART (115200 8N1) by `fpga/uart_test.py`:
 
 ```
 status: AA
 cipher: 3AD77BB40D7A3660A89ECAF32466EF97
 expect: 3AD77BB40D7A3660A89ECAF32466EF97
 RESULT: PASS
-cycles: 10 (200 ns @ 50 MHz) — measured on FPGA
+cycles: 10 (200 ns @ 50 MHz) - measured on FPGA
 ```
 
-**On-chip encryption-time measurement:** the FPGA wrapper contains a cycle counter that counts 50 MHz cycles while the AES core's `busy` signal is high, and transmits the count as 2 extra bytes after the ciphertext. The chip therefore **reports its own encryption time**: **10 cycles = 200 ns @ 50 MHz** — measured, not estimated.
+**The chip reports its own encryption time**: the wrapper counts 50 MHz cycles while the AES core is busy and transmits the count after the ciphertext.
 
-**LEDs (LD0–LD7 = ciphertext MSB):** `1001 0111` = `0x97` — exact match to the NIST TV1 ciphertext, held visible by a latch in the FPGA wrapper (the raw SoC asserts the result for only ~1.5 ms, too fast for the eye).
+**LEDs (LD0-LD7 = final/last ciphertext byte):** `1001 0111` = `0x97` — the last byte of the NIST TV1 ciphertext (the RTL drives `led_data <= aes_cipher[7:0]`), latched for visibility by the FPGA wrapper. `led_done` LD15, `led_busy` LD13, `led_error` LD14.
 
-![Basys3 demo — AES-128 NIST TV1, LEDs 0x97](docs/basys3_demo_0x97.jpeg)
+![Basys3 demo - AES-128 NIST TV1, LEDs 0x97](docs/basys3_demo_0x97.jpeg)
 
-| Signal | LEDs | On TV1 |
-|---|---|---|
-| `led_data[7:0]` (cipher MSB) | LD0–LD7 | `1001 0111` = 0x97 ✅ |
-| `led_busy` | LD13 | off (idle) |
-| `led_done` | LD15 | ON |
-| `led_error` | LD14 | off |
+Files: `fpga/aes_soc_fpga.v` (wrapper: 100->50 MHz divider, LED latch, cycle counter), `fpga/basys3.xdc`, `fpga/clk50_impl.xdc`, `fpga/build_basys3.tcl`, `fpga/uart_test.py`, `sw/pc_demo.py`.
 
-**Verification layers:**
+---
 
-- **Simulation (Vivado xsim):** `tb/tb_aes_soc.v` — UART-level testbench with a receive task; `PASS: full 16-byte ciphertext matches NIST TV1`; prints the `aes_busy` cycle count (11 in sim).
-- **Hardware (Basys3):** UART ciphertext exact + LEDs `0x97` + on-chip cycle counter = **10 cycles (200 ns)**.
-- **Timing (Vivado):** WNS **+8.661 ns** @ 100 MHz (divider path); `clk50_impl.xdc` declares the generated 50 MHz clock so the full AES core is timing-checked (no_clock = 0).
+## Design-for-Test (v2)
 
-**Files:** `fpga/aes_soc_fpga.v` (wrapper: 100→50 MHz divider, reset conditioning, LED latch, cycle counter), `fpga/basys3.xdc` (pins: data LEDs LD0–LD7, status LD13–LD15, UART A18/B18, clock W5), `fpga/clk50_impl.xdc` (impl-only generated clock), `fpga/build_basys3.tcl` (one-command batch build), `fpga/uart_test.py` (host script: sends TV1, prints status + ciphertext + cycles), `sw/pc_demo.py` (full speedup demo).
+- **Memory BIST:** March C- controller around the 256x8 SRAM (`rtl/mbist_ctrl.v`, `rtl/ram_wrapper.v`, `rtl/ram_256x8.v`). Verified in simulation with behavioral fault injection: clean memory passes; injected stuck-at-0 at address 42 bit 0 is detected and the failing address reported (`tb/tb_mbist.v`).
+- **Scan-cell mapping:** all 745 flip-flops replaced by scan flip-flops via OpenROAD `scan_replace`, executed as a custom OpenLane 2 flow step (`dft/openlane2_plugin/`) on the synthesized netlist — **zero RTL changes**. Flows: `pnr/config_probe_scan.json` (synthesis + scan-replace probe) and `pnr/config_scan.json` (full 79-step flow; completed 79/79 twice, runs `scan_v2_0822f` and `scan_v2_0822g`).
+- **Chain stitching - attempted and characterized:** OpenROAD `insert_dft` was invoked at two flow points (post-detailed-placement and post-CTS); the bundled OpenROAD build rejects scan-cell creation in both cases (DFT-0005 for every flop), so the released GDS holds scan-mapped flops with unconnected scan pins (745 x 2 = 1490, disclosed). Stitching requires a newer OpenROAD build. Reproduction and logs: `dft/README_scan_dft_plan.md`, `dft/run_scan_probe.sh`, `dft/dft_report.sh`.
+- **Power analysis:** OpenSTA on routed DEF + extracted SPEF, 3 corners — `dft/power_report.sh` (analysis, not silicon measurement; method disclosed).
 
 ---
 
 ## Architecture
 
 ```
-        ┌────────────────────────────────────────────┐
-  UART  │  aes_soc (top)                             │
- rx ───►│  uart_rx ──► CTRL FSM ──► aes_core         │
-        │   (2-FF sync)   │     ┌──────────────────┐ │
- tx ◄───│  uart_tx ◄──────┘     │ add_round_key    │ │
-        │                     │ sub_bytes (16×SBox)│ │
- LED ───│                     │ shift_rows (wiring)│ │
-        │   key_expand ──────►│ mix_columns GF(2^8)│ │
-        │   (11 round keys)   └──────────────────┘ │
-        └────────────────────────────────────────────┘
+        +--------------------------------------------+
+  UART  |  aes_soc (top)                             |
+ rx --->|  uart_rx ---> CTRL FSM ---> aes_core       |
+        |  (2-FF sync)    |     +------------------+ |
+ tx <---|  uart_tx <------+     | add_round_key    | |
+        |                      | sub_bytes (16xSB)| |
+ LED <--|                      | shift_rows (wiring)| |
+        |  key_expand -------> | mix_columns GF(28)| |
+        |  (on-the-fly)        +------------------+ |
+        |  March C- MBIST + 256x8 SRAM               |
+        |  745 flops -> scan flops (sdf, 100%)       |
+        +--------------------------------------------+
 ```
 
-- **Iterative 1-round datapath:** one round unit reused for 10 rounds + initial AddRoundKey = 11 datapath operations, 10-cycle busy window (measured). Chosen over a pipelined alternative (~10× the area and power) to fit low-power IoT targets.
-- **SubBytes:** 16 parallel 256-entry S-Box LUTs. **ShiftRows:** pure wiring — synthesizes to **0 cells**. **MixColumns:** GF(2⁸) matrix multiply with shared xtime logic. **Key expansion:** on-the-fly generation of 11 round keys (1408 bits, Rcon 01…36).
-- **SoC shell:** UART 115,200 baud @ 50 MHz (BAUD_DIV 434) with 2-FF input synchronizer. Command protocol: `0xAE` + key(16B) + plaintext(16B) → after encryption the SoC transmits `0xAA` (status) + 16-byte ciphertext. `0x55` sets the error flag only (no UART reply — see `aes_soc.v` state 0). Ciphertext MSB drives the LEDs (TV1 → `0x97`).
+- **Iterative 1-round datapath:** one round unit reused for 10 rounds; 10-cycle busy window (measured). Chosen over pipelined (~10x area) for IoT targets.
+- **SubBytes:** 16 parallel S-boxes. **ShiftRows:** pure wiring (0 cells). **MixColumns:** GF(2^8) with shared xtime. **Key expansion:** on-the-fly (Rcon 01..36).
+- **SoC shell:** UART 115200 @ 50 MHz (BAUD_DIV 434), 2-FF sync. Protocol: `0xAE` + key(16B) + plaintext(16B) -> `0xAA` + ciphertext(16B). `0x55` asserts error only. The **final ciphertext byte** drives the LEDs (TV1 -> `0x97`).
 
 ## Layout
 
-| Full chip (KLayout) | Metal routing | Antenna-repair diodes | Virtuoso (licensed) |
+| Full chip (KLayout) | Metal routing | Std cells | Antenna diodes |
 |---|---|---|---|
-| ![](docs/layout_views/klayout_full_chip.png) | ![](docs/layout_views/klayout_metal_routing.png) | ![](docs/layout_views/klayout_antenna_diodes.png) | ![](virtuoso/screenshots/full_chip.png) |
+| ![](docs/layout_views/klayout_full_chip.png) | ![](docs/layout_views/klayout_metal_routing.png) | ![](docs/layout_views/klayout_std_cells.png) | ![](docs/layout_views/klayout_antenna_diodes.png) |
 
-Additional views: [`docs/layout_views/`](docs/layout_views) (KLayout, PDK-colored) and [`virtuoso/screenshots/`](virtuoso/screenshots) (Cadence Virtuoso 6.1.5 import via XStream with a custom Sky130 GDS layer map).
+Also: `virtuoso/screenshots/` (Cadence Virtuoso 6.1.5 XStream import).
 
 ## Repository Structure
 
 ```
-├── rtl/            Verilog RTL: crypto core (12 files), UART peripherals, SoC top
-├── tb/             Testbenches: NIST vectors + SoC UART protocol (16-byte ciphertext check)
-├── synth/          Yosys synthesis script + report (25,902 cells / 185,254 µm²)
-├── timing/         OpenSTA scripts + SDC (20 ns clock, I/O delays, false paths)
-├── pnr/            OpenLane 2 config (1 mm² die; 45% planned / 20.2% achieved) + RTL source set
-├── gds/            Final GDS-II (aes_soc.gds, Git LFS)
-├── docs/           Architecture, NIST verification, Virtuoso guide, flow doc,
-│                   one-page summary PDF, KLayout views, demo log, Basys3 demo photo
-├── virtuoso/       Licensed-Cadence signoff screenshots
-├── fpga/           Basys3 demo: wrapper (aes_soc_fpga.v), pins (basys3.xdc), impl clock
-│                   (clk50_impl.xdc), build script (build_basys3.tcl), host test (uart_test.py);
-│                   iCEstick (.pcf) + DE0 files
-├── sw/             pc_demo.py — SW-vs-HW speedup + NIST check (UART when board attached)
-└── run_sim.sh      RTL simulation entry point
+rtl/        Verilog: crypto core, UART, SoC top, MBIST (mbist_ctrl, ram_wrapper, ram_256x8)
+tb/         Testbenches: tb_aes_soc_v2_1.v (SoC NIST TV1), tb_aes_core_v2.v (4 vectors),
+            tb_mbist.v (fault injection); legacy tb_aes_soc.v / tb_aes_core.v kept for history
+synth/      Yosys script + v1 report (historical)
+timing/     OpenSTA scripts + SDC
+pnr/        OpenLane 2.3.10 configs: config.json (baseline 67.6%), config_scan.json (79-step
+            DFT flow), config_scan_cts.json (post-CTS stitch experiment), config_probe_scan.json
+dft/        DFT kit: OpenLane plugin (scan steps), standalone probe, report + power scripts
+paper/      v2 IEEE conference paper (LaTeX + PDF)
+gds/        GDSII (v1 first-pass, Git LFS); v2/DFT run GDS in pnr/runs/
+fpga/       Basys3 wrapper, XDC, build script, host test
+sw/         pc_demo.py
+docs/       Architecture, NIST verification, benchmark basis, flow doc, Virtuoso guide, demo log
+run_sim.sh  Simulation entry point (all three testbenches)
 ```
 
 ## Tool Flow
 
 | Stage | Tool | Notes |
 |---|---|---|
-| Simulation | Icarus Verilog | 5/5 NIST FIPS-197 vectors |
-| Synthesis | Yosys | `synth/synth.tcl`, sky130_fd_sc_hd |
-| STA | OpenSTA | `timing/sta.tcl` + `constraints.sdc` |
-| Place & Route | OpenLane 2.3.10 | floorplan → placement → CTS → routing → GDS |
-| DRC / LVS | Magic / KLayout / Netgen | clean / match |
-| Signoff viewing | Cadence Virtuoso 6.1.5 | XStream import + custom layer map |
-| FPGA demo | Vivado 2017.4 (Basys3) | `fpga/build_basys3.tcl` → bitstream → program → `uart_test.py` |
-| Demo | Python | `sw/pc_demo.py`, `fpga/uart_test.py` |
+| Simulation | Icarus Verilog 11/12 | 4/4 KAT vectors; SoC TV1; MBIST fault injection |
+| Synthesis | Yosys 0.46 | sky130_fd_sc_hd |
+| STA | OpenSTA (9 corners) | 0 violations both configs |
+| PnR + DFT | OpenLane 2.3.10 + OpenROAD (`scan_replace`, custom steps) | 79/79 flow, twice |
+| DRC / LVS | Magic 8.3.489 / KLayout / Netgen 1.5.278 | 0 / match |
+| Power | OpenSTA + SPEF | 3 corners, method disclosed |
+| FPGA | Vivado 2017.4 (Basys3) | measured 200 ns |
 
-## Reproducing the Flow
+## Reproducing
 
 ```bash
-bash run_sim.sh                      # RTL simulation vs NIST vectors
-yosys -s synth/synth.tcl             # synthesis -> netlist + report
-sta timing/sta.tcl                   # static timing analysis
-openlane pnr/config.json             # full PNR -> GDS (≈30 min)
-klayout gds/aes_soc.gds              # layout viewing
-python3 sw/pc_demo.py                # 250x speedup demo (+ UART when FPGA attached)
+bash run_sim.sh                                   # all three testbenches (expect 3x PASS)
+# or individually:
+iverilog -o s.vvp tb/tb_aes_soc_v2_1.v rtl/crypto/*.v rtl/peripheral/*.v rtl/top/*.v && vvp s.vvp
+iverilog -o c.vvp tb/tb_aes_core_v2.v rtl/crypto/*.v && vvp c.vvp
+iverilog -o m.vvp tb/tb_mbist.v rtl/mbist_ctrl.v rtl/ram_wrapper.v rtl/ram_256x8.v && vvp m.vvp
 
-# FPGA demo (Basys3)
-vivado -mode batch -source fpga/build_basys3.tcl   # build bitstream
-# program via Hardware Manager, then:
-python fpga/uart_test.py             # sends NIST TV1, checks ciphertext + LEDs + cycles
+openlane pnr/config.json                          # baseline flow (~30 min)
+export PYTHONPATH=$PWD/dft/openlane2_plugin:$PYTHONPATH
+openlane pnr/config_scan.json --run-tag scan_run  # DFT flow (79 steps)
+bash dft/dft_report.sh pnr/runs/scan_run          # signoff metrics
+bash dft/power_report.sh pnr/runs/scan_run        # power analysis (3 corners)
 ```
 
-## Engineering Notes (selected debugging highlights)
+FPGA: `vivado -mode batch -source fpga/build_basys3.tcl`, program, then `python3 fpga/uart_test.py`.
 
-- **Structural timing discovery:** post-CTS STA showed −38 ns worst slack on ~900 endpoints; 3,300 resizer iterations improved it only to −32 ns — proving the path was architectural, not tunable. The path report drove an RTL re-architecture (iterative 1-round pipeline) that closed timing at **+14.07 ns** on the next spin.
-- **SDC portability:** removed a Synopsys-only `set_fix_hold` command that crashed OpenSTA; hold is repaired inside PNR (`repair_timing`).
-- **Antenna signoff:** enabled `RUN_ANTENNA_REPAIR`; diode insertion reduced 5 violations to 1 residual (visible as `DIODE` cells in the layout view above).
-- **Flow resilience:** per-step state saving allowed resuming the PNR flow after a mid-run power cut (`--run-tag … --from <step>`).
-- **Large-binary hygiene:** 64 MB GDS versioned through Git LFS after a plain-push HTTP 408 on a slow uplink.
-- **FPGA demo visibility fix:** the raw SoC asserts the result for ~1.5 ms (invisible to the eye) — the Basys3 wrapper adds an LED latch so the ciphertext MSB stays on LD0–LD7 until reset or the next command.
-- **On-chip performance measurement:** a cycle counter in the wrapper counts the AES `busy` window and transmits it over UART — the chip reports **10 cycles = 200 ns @ 50 MHz** (measured, not estimated).
-- **UART protocol alignment:** the host scripts read **19 bytes** (0xAA status + 16 ciphertext + 2-byte cycle count); the SoC does not reply to `0x55` (error-flag only), so the old "alive check" was removed to match the RTL.
+## Engineering Notes (highlights)
+
+- **Utilization fix:** absolute DIE_AREA/CORE_AREA inputs were silently ignored (20.2% stuck); relative sizing closed at 67.6% — verify utilization from placement logs, not config inputs.
+- **Scan-area compensation:** scan replacement grows synthesized cell area 44% (116.8k -> 168.0 um2); floorplan target compensated 54 -> 38 so the DFT build stays routable.
+- **Testbench discipline:** the original SoC testbench had 3 deterministic bugs (missed busy pulse, UART re-arm at 10.5 vs 10.02 bit periods, pulse-vs-level done) — the fixed TB (`tb_aes_soc_v2_1.v`) passes on iverilog 11 and 12 and is the reference.
+- **Honest negatives:** chain stitching characterized at two insertion points (DFT-0005); EQY inapplicable pre-stitch; 109 nets unannotated in RC extraction. All disclosed.
+- **On-FPGA measurement:** in-design cycle counter -> 10 cycles = 200 ns @ 50 MHz (measured, not estimated).
+- **Protocol alignment:** host reads 19 bytes (AA + cipher + 2-byte cycle count); no reply to `0x55` by design.
 
 ## Team
 
 | | |
 |---|---|
-| **Akif Mohamed** | Physical design: floorplan, placement, CTS, routing, signoff, Virtuoso review, FPGA demo |
-| **Nandikha** | RTL design, Yosys synthesis, OpenSTA timing analysis |
+| **Nandikha M** | RTL design (15 NIST-verified modules), Yosys synthesis, OpenSTA timing |
+| **Akif Mohamed J** | Physical design + signoff, DFT (MBIST + scan flow), power analysis, FPGA demo, v2 testbenches |
 
-## Previous Work
+Division of labor documented in `TEAM_SPLIT.md`; branches `feature/aes-rtl-synth-timing` and `feature/aes-pnr-gds-virtuoso`.
 
-PipeCore-GDS — 8-bit pipelined ALU, 168 cells / 1,513 µm², RTL-to-GDS on Sky130. This project scales that experience ~50× in complexity with crypto-domain verification and licensed-tool signoff.
+## History
 
----
+- **v1** (branch history): first-pass flow, 1 mm2 die, 20.2% utilization, GDS in `gds/`.
+- **v2 (Aug 2026, tag `v2.0`)**: utilization fix to 67.6%, verified testbenches, MBIST, full scan-cell mapping with two complete 79/79 signed-off flows, power analysis, corrected benchmark basis, IEEE paper (`paper/`).
 
-*Educational tapeout-style project. GDSII provided for portfolio/review purposes. FPGA demo verified on Digilent Basys3 (20 Aug 2026) — on-chip measured: 10 cycles / 200 ns @ 50 MHz.*
+*Educational tapeout-style project. No silicon fabrication is claimed; FPGA measurements are real hardware measurements. Every reported number is reproducible from this repository.*

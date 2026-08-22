@@ -56,9 +56,9 @@
 
 **Iterative (Chosen):**
 - 1 round unit reused 10 times
-- Latency: 11 cycles = 220ns @50MHz
-- Area: 25,902 cells / 185,254 µm² measured (Yosys), 1 mm² die, low power
-- Reason: IoT target = area/power critical, still 227x faster than SW
+- Latency: 10-cycle busy window = 200ns @50MHz (measured on FPGA)
+- Area v1: 25,902 cells / 185,254 um2 (historical); v2: 67.6% utilization, 240,307 um2 die; DFT build 326,366 um2, 745 scan flops
+- Reason: IoT target = area/power critical; 114-128x fewer cycles than published SW AES
 
 **Pipelined (Not Chosen):**
 - 10 round units in series
@@ -117,7 +117,7 @@ COMMAND 0xAE - ENCRYPT:
   Laptop -> FPGA: [0xAE][Key 16B MSB first][Plain 16B MSB first]
   FPGA -> Laptop: [Cipher 16B MSB first]
   LEDs: busy=1 during encryption, done=1 after, data=last cipher byte
-  Timeline: RX 33 bytes @115200 = ~2.9ms, Core 220ns, TX 16 bytes = ~1.39ms
+  Timeline: RX 33 bytes @115200 = ~2.9ms, Core 200ns, TX 16 bytes = ~1.39ms
 
 COMMAND 0x55 - STATUS:
   Laptop -> FPGA: [0x55]
@@ -128,13 +128,13 @@ COMMAND 0x55 - STATUS:
 ### Clocking
 
 - Main Clock: 50MHz (20ns period) from Basys3 100MHz /2 or iCEstick 12MHz via PLL (or adjust BAUD_DIV)
-- Encryption Clock: Same 50MHz, 11 cycles = 220ns
+- Encryption Clock: Same 50MHz, 10-cycle busy window = 200ns
 - UART Clock: Same 50MHz, BAUD_DIV=434 gives 115200 baud (50M/115200=434)
 - For iCEstick 12MHz: BAUD_DIV=104 (12M/115200)
 
 ### Gate Count Breakdown (Measured)
 
-- Measured (Yosys, sky130_fd_sc_hd): 25,902 cells / 185,254 µm²
+- v1 synthesis (historical): 25,902 cells / 185,254 um2; v2 flow: 745 FFs (100% scan-mapped), 0.122 mW/MHz
 - Sequential 8.3% of area; S-Box combinational dominates (91.7%)
 - ShiftRows: 0 cells (pure wiring)
 

@@ -1,32 +1,22 @@
-# Software vs Hardware AES-128 - Benchmark Basis
+# Software vs Hardware AES-128 Benchmark - Verified Basis (v2, 22 Aug 2026)
 
-Hardware number from our signoff; software numbers from published, measured MCU
-benchmarks. The representative 227.3x is a labeled assumption inside that range.
+## Measured hardware
+- 10 clock cycles per 128-bit block (counted by an in-design cycle counter on
+  the FPGA; reproduced in simulation by tb/tb_aes_soc_v2_1.v).
+- 200 ns at 50 MHz. 0.64 Gbps.
 
-## Hardware (this project, signoff-derived)
-- 11 cycles per 128-bit block (sim-verified, 5/5 NIST FIPS-197).
-- 20 ns / 50 MHz timing-closed: setup +14.07 ns, hold +0.29 ns.
-- 220 ns per block.
+## Published software baselines (cited)
+| Source | Platform | Cost | Per 128-bit block |
+|---|---|---|---|
+| mbed TLS measured benchmark (NUCLEO-446RE) | Cortex-M4 @ 180 MHz | 71 cycles/byte | ~1,136 cycles |
+| Kim & Seo, ACM TECS 24(6), 2025 (fixslicing record) | Cortex-M4 | ~80 cycles/byte | ~1,280 cycles |
+| Schwabe & Stoffelen, CHES 2017 (table-based CTR) | Cortex-M4 | 554.4 cycles/block | 554 cycles |
 
-## Software baselines (published, per 128-bit block)
-| Source | Platform | Cycles/block | Time | Speedup vs 220 ns |
-|---|---|---|---|---|
-| Schwabe-Stoffelen table-based (SAC 2017) | Cortex-M4 | 634.7 | 3.8 us @168 MHz | ~17x |
-| mbed TLS v2.3.0 CTR (same study) | Cortex-M4 | 1247 | 7.4 us @168 MHz | ~34x |
-| NXP AN11241 app note (same study) | Cortex-M | 4179 | 41.8 us @100 MHz | ~190x |
-| Measured AES128-CTR (IoE endpoints, 2018) | Cortex-M4 | - | 55-97 us | 250-440x |
-| Measured (same) | Cortex-M0 | - | ~390 us | ~1770x |
-
-## Representative assumption
-pc_demo.py / README use 50,000 ns (~5,000 cycles @100 MHz, app-note class),
-inside the measured 44-97 us M4/M7 band -> 227.3x. Conservative bound ~17x;
-low-end bound >1000x.
-
-## References
-1. P. Schwabe, K. Stoffelen, "All the AES You Need on Cortex-M3 and M4," SAC 2017; github.com/Ko-/aes-armcortexm
-2. Adomnicai-Peyrin, "Fixslicing AES-like Ciphers," ePrint 2020/1123
-3. "Performance Costs of Cryptography in Securing New-Generation Internet of Energy Endpoint Devices," 2018
-4. NXP AN11241 (via [1])
-
-Policy: HW measured/signoff-derived here; SW literature-derived and labeled;
-no assumption presented as a measurement.
+## Honest speedup
+- Cycle count: 1,136 / 10 = ~114x (vs measured mbedTLS); 1,280 / 10 = 128x
+  (vs fastest published software).
+- At the software's own 168-180 MHz clock the wall-clock ratio is smaller
+  (the MCU simply runs more cycles per second); the cycle-count ratio is the
+  architecture-honest comparison.
+- The OLD 50,000 cycles / 250x / 227x figures used an assumed app-note-class
+  software time and are RETIRED. Do not quote them.
