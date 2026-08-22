@@ -39,7 +39,7 @@ module tb_mbist;
     // data on the MBIST read path (AND-out bit0 -> stuck-at-0).
     reg [7:0] m_addr_d;
     always @(posedge clk) m_addr_d <= m_addr;
-    assign m_dout = (fault_en && !m_we && m_addr_d == fault_addr_i)
+    assign m_dout = (fault_en && u_wrap.m_dout[0] == 1'b1 && m_addr_d == fault_addr_i)
                   ? (u_wrap.m_dout & ~fault_bit)
                   : u_wrap.m_dout;
 

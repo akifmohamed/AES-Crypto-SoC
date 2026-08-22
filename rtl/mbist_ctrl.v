@@ -1,6 +1,4 @@
-// mbist_ctrl_v2.v — March C- BIST controller for 256x8 SRAM (v2: sync-RAM-safe)
-// FIX v2: reads are pipelined one cycle — set addr, then sample m_dout next
-// cycle — so it works with synchronous-read RAMs (iverilog + Vivado).
+// mbist_ctrl.v — March C- BIST controller for 256x8 SRAM (v2: sync-RAM-safe)
 `timescale 1ns/1ps
 
 module mbist_ctrl #(
@@ -25,8 +23,8 @@ module mbist_ctrl #(
     reg [2:0]  state;
     reg [AW-1:0] addr;
     reg        up;
-    reg        phase;          // 0 = first op, 1 = second op of a step
-    reg [DW-1:0] rd_data;      // pipelined read data (sampled 1 cycle after addr)
+    reg        phase;
+    reg [DW-1:0] rd_data;
 
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
@@ -36,36 +34,29 @@ module mbist_ctrl #(
             done <= 0; pass <= 0; fail <= 0; fault_addr <= 0;
         end else begin
             m_we <= 0;
-            // sample read data every cycle (works with sync RAM)
             rd_data <= m_dout;
             case (state)
                 S_IDLE: begin
                     done <= 0; pass <= 0; fail <= 0;
                     if (go) begin state <= S_W0; addr <= 0; up <= 1; end
                 end
-                // ---- Step 1: up W0 ----
                 S_W0: begin
                     m_we <= 1; m_addr <= addr; m_din <= 0;
                     if (addr == {AW{1'b1}}) begin state <= S_R0W1; addr <= 0; up <= 1; phase <= 0; end
                     else addr <= addr + 1;
                 end
-                // ---- Step 2: up R0, W1 ----
                 S_R0W1: begin
                     if (!phase) begin
-                        // cycle A: address out
                         m_we <= 0; m_addr <= addr;
                         phase <= 1;
                     end else begin
-                        // cycle B: check sampled data (addr was set last cycle)
                         if (rd_data != 0) begin fail_state(addr); end
-                        // write 1
                         m_we <= 1; m_addr <= addr; m_din <= {DW{1'b1}};
                         phase <= 0;
                         if (addr == {AW{1'b1}}) begin state <= S_R1W0; addr <= 0; up <= 1; phase <= 0; end
                         else addr <= addr + 1;
                     end
                 end
-                // ---- Step 3: up R1, W0 ----
                 S_R1W0: begin
                     if (!phase) begin
                         m_we <= 0; m_addr <= addr;
@@ -78,7 +69,6 @@ module mbist_ctrl #(
                         else addr <= addr + 1;
                     end
                 end
-                // ---- Step 4: down R0, W1 ----
                 S_D_R0W1: begin
                     if (!phase) begin
                         m_we <= 0; m_addr <= addr;
@@ -91,7 +81,6 @@ module mbist_ctrl #(
                         else addr <= addr - 1;
                     end
                 end
-                // ---- Step 5: down R1, W0 ----
                 S_D_R1W0: begin
                     if (!phase) begin
                         m_we <= 0; m_addr <= addr;
@@ -104,7 +93,6 @@ module mbist_ctrl #(
                         else addr <= addr - 1;
                     end
                 end
-                // ---- Step 6: down R0 ----
                 S_D_R0: begin
                     if (!phase) begin
                         m_we <= 0; m_addr <= addr;
