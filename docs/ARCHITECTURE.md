@@ -1,43 +1,3 @@
-<<<<<<< HEAD
-# AES-128 Crypto Accelerator SoC — Hardware Architecture
-
-## 1. Top-Level Architecture
-The **AES-128 Crypto Accelerator SoC** integrates an iterative 128-bit Advanced Encryption Standard (AES) cryptographic engine with a universal asynchronous receiver-transmitter (UART) peripheral and a top-level SoC system controller.
-
-```
-       +-------------------------------------------------------------+
-       |                         AES_SOC TOP                         |
-       |                                                             |
-RX --->| [2-FF Sync] ---> [ UART_RX ] --+---> [ SoC CTRL FSM ]       |---> TX
-       |                                |         |  ^               |
-       |                                |   Key/  |  | Done/         |
-       |                                |   Plain |  | Cipher        |
-       |                                v         v  |               |
-       |                                +-------------------------+  |
-       |                                |       AES_CORE          |  |
-       |                                |  (11 cycles @ 50 MHz)   |  |
-       |                                +-------------------------+  |
-       +-------------------------------------------------------------+
-```
-
----
-
-## 2. Cryptographic Core (`aes_core.v`)
-- **Key Size:** 128 bits (16 bytes).
-- **Block Size:** 128 bits (16 bytes).
-- **Rounds:** 10 rounds total (1 initial `AddRoundKey` + 9 full rounds + 1 final round without `MixColumns`).
-- **Iterative Reuse Design:** Reuses a single encryption round hardware block 10 times to save standard cell area (~8,200 gates vs. ~80,000 gates for a fully pipelined 10-stage architecture).
-- **Execution Latency:** Exactly **11 clock cycles** per 128-bit block (**220 ns @ 50 MHz** clock).
-
----
-
-## 3. Transformations & Hardware Implementation
-1. **SubBytes (`sub_bytes.v`, `aes_sbox.v`):** Instantiates **16 parallel 256-entry S-Boxes**. This non-linear substitution step dominates ~70–80% of total cell area in the synthesized netlist.
-2. **ShiftRows (`shift_rows.v`):** Pure interconnect byte-permutation. Costs **0 standard cells / 0 area / 0 delay** because it is hardwired during placement and routing.
-3. **MixColumns (`mix_columns.v`, `mix_column.v`, `gf_mult2.v`, `gf_mult3.v`):** Galois Field $GF(2^8)$ matrix multiplication across 4 columns in parallel using XOR and `xtime` byte-shifting.
-4. **AddRoundKey (`add_round_key.v`):** 128-bit bitwise XOR between the intermediate state and the current round key.
-5. **Key Expansion (`key_expand.v`):** Expands the 128-bit cipher key into **11 round keys** (1,408 bits total) using Rcon constants (`01, 02, 04, 08, 10, 20, 40, 80, 1B, 36`), `RotWord`, and `SubWord` transformations.
-=======
 # AES-128 Crypto SoC Architecture - Deep Dive
 
 ### SoC Block Diagram
@@ -96,9 +56,9 @@ RX --->| [2-FF Sync] ---> [ UART_RX ] --+---> [ SoC CTRL FSM ]       |---> TX
 
 **Iterative (Chosen):**
 - 1 round unit reused 10 times
-- Latency: 11 cycles = 220ns @50MHz
-- Area: ~8,200 gates, 1mm², low power
-- Reason: IoT target = area/power critical, still 227x faster than SW
+- Latency: 10-cycle busy window = 200ns @50MHz (measured on FPGA)
+- Area v1: 25,902 cells / 185,254 um2 (historical); v2: 67.6% utilization, 240,307 um2 die; DFT build 326,366 um2, 745 scan flops
+- Reason: IoT target = area/power critical; 114-128x fewer cycles than published SW AES
 
 **Pipelined (Not Chosen):**
 - 10 round units in series
@@ -157,7 +117,7 @@ COMMAND 0xAE - ENCRYPT:
   Laptop -> FPGA: [0xAE][Key 16B MSB first][Plain 16B MSB first]
   FPGA -> Laptop: [Cipher 16B MSB first]
   LEDs: busy=1 during encryption, done=1 after, data=last cipher byte
-  Timeline: RX 33 bytes @115200 = ~2.9ms, Core 220ns, TX 16 bytes = ~1.39ms
+  Timeline: RX 33 bytes @115200 = ~2.9ms, Core 200ns, TX 16 bytes = ~1.39ms
 
 COMMAND 0x55 - STATUS:
   Laptop -> FPGA: [0x55]
@@ -168,31 +128,28 @@ COMMAND 0x55 - STATUS:
 ### Clocking
 
 - Main Clock: 50MHz (20ns period) from Basys3 100MHz /2 or iCEstick 12MHz via PLL (or adjust BAUD_DIV)
-- Encryption Clock: Same 50MHz, 11 cycles = 220ns
+- Encryption Clock: Same 50MHz, 10-cycle busy window = 200ns
 - UART Clock: Same 50MHz, BAUD_DIV=434 gives 115200 baud (50M/115200=434)
 - For iCEstick 12MHz: BAUD_DIV=104 (12M/115200)
 
-### Gate Count Breakdown (Est.)
+### Gate Count Breakdown (Measured)
 
-- S-Box: ~400 gates x 16 = ~6400 gates (78% of area!)
-- Key Expansion: ~1000 gates
-- MixColumns: ~400 gates
-- FSM + registers + UART: ~400 gates
-- Total ~8200 gates
+- v1 synthesis (historical): 25,902 cells / 185,254 um2; v2 flow: 745 FFs (100% scan-mapped), 0.122 mW/MHz
+- Sequential 8.3% of area; S-Box combinational dominates (91.7%)
+- ShiftRows: 0 cells (pure wiring)
 
 Why S-Box dominant? 256-entry LUT is large combinational.
 
 Optimization future: Use composite-field S-Box (Canright) ~ 1/3 area.
 
-### Timing Critical Path (STA will show)
+### Timing Critical Path (measured post-PNR)
 
-Likely: `plaintext_reg -> SubBytes (S-Box LUT) -> ShiftRows (wire) -> MixColumn (xor tree) -> AddRoundKey (xor) -> state_reg`
+Path: `plaintext_reg -> SubBytes (S-Box LUT) -> ShiftRows (wire) -> MixColumn (xor tree) -> AddRoundKey (xor) -> state_reg`
 
-In Sky130, maybe 2-5ns, so 20ns period gives huge positive slack (+15ns) - can overclock to ~200MHz.
+Measured post-PNR: setup WNS +14.07 ns @ 20 ns period (fmax ≈ 168 MHz).
 
 ### Power Estimation
 
 - Dynamic power ~ P = α*C*V^2*f
 - For 8K gates @50MHz, Sky130 1.8V: Estimate ~5-10mW (vs software MCU ~50mW)
 - Will be in final reports from OpenLane
->>>>>>> 8a7d0f170172da4de0ed845c06b98da844d9d5b2

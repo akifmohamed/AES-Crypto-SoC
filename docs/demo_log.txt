@@ -1,0 +1,41 @@
+[UPDATE 22 Aug 2026 - corrections to the log below]
+- The LEDs show the FINAL (last) ciphertext byte, not the MSB.
+- The 250x / 50,000 ns software figure used an assumed SW time and is retired.
+  Verified basis: 114x cycle-count vs measured mbedTLS, 128x vs fastest
+  published software (docs/SPEEDUP_BENCHMARK.md).
+- The 200 ns / 10-cycle measurement is unchanged and correct.
+[Original log follows]
+==========================================
+AES-128 Hardware Crypto Accelerator SoC
+Python Demo - RTL-to-GDSII validated
+==========================================
+Key:      2B7E151628AED2A6ABF7158809CF4F3C
+Plain:    6BC1BEE22E409F96E93D7E117393172A
+Expected: 3AD77BB40D7A3660A89ECAF32466EF97
+
+Specs: 50MHz, 10 cycles = 200 ns/block (measured on FPGA), 25,902 cells (185,254 um2), 1mm2
+Software AES on MCU: ~50,000 ns/block
+Speedup: 250x FASTER
+
+--- Hardware AES (Basys3 FPGA, 20 Aug 2026) ---
+status: AA
+cipher: 3AD77BB40D7A3660A89ECAF32466EF97
+expect: 3AD77BB40D7A3660A89ECAF32466EF97
+RESULT: PASS
+cycles: 10 (200 ns @ 50 MHz) — measured on FPGA
+
+--- Verification ---
+LEDs (LD0-LD7): 1001 0111 = 0x97 (ciphertext MSB, held by wrapper latch)
+NIST TV1: PASS (full 16-byte ciphertext match, sim + hardware)
+Timing (Vivado): WNS +8.661 ns @ 100 MHz; clk50 generated-clock declared (no_clock = 0)
+
+--- Software reference ---
+SW Cipher: 3AD77BB40D7A3660A89ECAF32466EF97
+SW Time: 50000 ns (representative MCU software AES)
+
+Speedup: 50,000 ns / 200 ns = 250x FASTER (measured on-chip)
+
+To reproduce on the board:
+1. Program Basys3 with fpga/aes_soc_fpga.bit (Vivado)
+2. Connect USB-UART (115200 8N1)
+3. python3 sw/pc_demo.py  (or python fpga/uart_test.py)

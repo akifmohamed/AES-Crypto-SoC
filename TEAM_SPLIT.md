@@ -1,45 +1,15 @@
-<<<<<<< HEAD
-# Team Split & Responsibilities — AES-128 Crypto Accelerator SoC
+> HISTORICAL v1 planning document (kept for the team record).
+> Numbers below are v1-era and superseded by v2 (see README): 200 ns / 10 cycles,
+> 67.6% utilization, 745 FFs, 114-128x vs software, DFT + power analysis added.
+> The role split itself is still accurate.
 
-Our team consists of two members working in parallel across the RTL-to-GDSII VLSI Physical Design flow. This division ensures clear accountability and allows concurrent development (e.g., Nandikha running synthesis & STA while Akif runs OpenLane PNR rehearsal).
-
----
-
-## 👥 Member Roles & Ownership
-
-### Person A: Nandikha — Lead RTL Design, Logic Synthesis & Static Timing Analysis
-- **Primary Domain:** Front-end digital design, RTL coding, gate-level netlist generation, and timing closure.
-- **Assigned Phases:**
-  - **Phase 2:** Verilog RTL design (all 15 modules in `rtl/crypto/`, `rtl/peripheral/`, `rtl/top/`) and verification against NIST FIPS-197 test vectors.
-  - **Phase 3:** Logic synthesis using **Yosys** (`yosys -s synth/synth.tcl`), mapping to Google SkyWater Sky130 standard cells (`sky130_fd_sc_hd`), and analyzing area/gate count growth (~8,200 gates vs. PipeCore 168 cells).
-  - **Phase 4:** Static Timing Analysis using **OpenSTA** (`sta timing/sta.tcl`), writing SDC constraints (`20ns` period / `50MHz` clock), and verifying positive setup/hold slack.
-- **Git Branch:** `feature/aes-rtl-synth-timing`
-
----
-
-### Person B: Akif — Lead Place & Route (PNR), Physical Signoff, Cadence Virtuoso & FPGA Demo
-- **Primary Domain:** Back-end physical design, floorplanning, CTS, routing, GDS-II generation, commercial DRC/LVS signoff, and hardware demonstration.
-- **Assigned Phases:**
-  - **Phase 5:** Die floorplanning (`1000 × 1000 µm` die area, `45%` core utilization), power ring/strap generation, and I/O pin placement.
-  - **Phase 6:** Global/detailed placement and Clock Tree Synthesis (CTS) targeting `<145ps` clock skew.
-  - **Phase 7:** Global/detailed routing, DRC/LVS signoff in OpenLane 2, and exporting final GDS-II stream (`gds/aes_soc.gds`).
-  - **Phase 8 (Licensed Premium Advantage):** Importing final GDSII stream into **Cadence Virtuoso**, performing measurements, and capturing 4 required signoff screenshots (`full_chip`, `std_cells`, `metal_routing`, `power_grid`).
-  - **Phase 9:** Programming FPGA demo board (Basys3 / iCEstick), running Python live demo (`sw/pc_demo.py`) showing **227× speedup**, and verifying LED `0x97` output.
-- **Git Branch:** `feature/aes-pnr-gds-virtuoso`
-
----
-
-## 🤝 Shared Responsibilities (Both Nandikha & Akif)
-- **Phase 1:** Environment setup (Reusing PipeCore Nix environment: Yosys 0.67+, OpenSTA 2.0.17, OpenLane 2.3.10, KLayout 0.30.9, Sky130 PDK, Cadence Virtuoso license verification).
-- **Phase 9:** Documentation (`README.md`, `ARCHITECTURE.md`, `NIST_VERIFICATION.md`, `VIRTUOSO_GUIDE.md`), final 1-page project summary PDF, and technical interview Q&A prep.
-=======
 # TEAM SPLIT - AES-128 Crypto SoC
 ## 2-Person Team - Same as PipeCore-GDS
 
 ### Project Overview (Recap from Master Note)
 - **Name:** AES-128 Hardware Crypto Accelerator SoC
 - **Speedup Story:** SW 50,000ns vs HW 220ns = 227x FASTER
-- **Design:** Iterative AES (1 round reused 10x = 11 cycles), 8.2K gates, 1mm2, 45% util, 50MHz, UART interface
+- **Design:** Iterative AES (1 round reused 10x = 11 cycles), 25,902 cells / 185,254 um2 measured, 1mm2 die (20.2% util achieved), 50MHz, UART interface
 - **NIST TV1 Must Memorize:** Key 2B7E151628AED2A6ABF7158809CF4F3C Plain 6BC1BEE22E409F96E93D7E117393172A Cipher 3AD77BB40D7A3660A89ECAF32466EF97
 - **Tools:** Yosys, OpenSTA, OpenLane 2.3.10, KLayout, Sky130 via Nix + Cadence Virtuoso (licensed viewing only) - No Genus/Innovus/Xcelium
 
@@ -54,12 +24,12 @@ Our team consists of two members working in parallel across the RTL-to-GDSII VLS
 
 **Deliverables to Person B:**
 - `synth/netlist/aes_soc_synth.v` (optional - OpenLane can re-synth from RTL)
-- `timing/constraints.sdc` (REAL SDC with 20ns clock + set_fix_hold)
+- `timing/constraints.sdc` (20ns clock SDC; Synopsys-only set_fix_hold removed for OpenSTA portability)
 - `timing/reports/setup_report.txt` + `hold_report.txt`
-- Updated PROJECT_STATE.md Phase 3-4 numbers
+- (team state tracking kept private; public numbers live in README/docs)
 
 **Branch:** `feature/aes-rtl-synth-timing`
-**Tasks file:** `PERSON_A_TASKS.md`
+**Scope:** RTL, synthesis, STA
 
 **Interview Focus:**
 - SubBytes 16 S-Boxes parallel in 1 cycle, generate loop
@@ -76,8 +46,8 @@ Our team consists of two members working in parallel across the RTL-to-GDSII VLS
 **Responsibility:** Build the physical chip, see it in Virtuoso, demo on FPGA.
 
 **Phases:**
-1. Phase 5: Floorplan - DIE 1000x1000um, 45% util, power grid
-2. Phase 6: Placement & CTS - Place ~8K gates, clock skew target 145ps
+1. Phase 5: Floorplan - DIE 1000x1000um, 45% util planned (20.2% achieved), power grid
+2. Phase 6: Placement & CTS - Place ~26K cells, clock skew target 145ps
 3. Phase 7: Routing & GDS - Route Metal1-4, DRC 0, LVS MATCH, export GDS
 4. Phase 8: Virtuoso Viewing - Import GDS into Virtuoso (licensed advantage!), 4 screenshots
 5. Phase 9: FPGA Demo LAST! - Basys3/iCEstick, UART demo showing 227x speedup
@@ -87,10 +57,10 @@ Our team consists of two members working in parallel across the RTL-to-GDSII VLS
 - `virtuoso/screenshots/` 4 images
 - `fpga/basys3.xdc` bitstream (optional)
 - `gds/aes_soc.gds` final
-- Updated PROJECT_STATE.md Phase 5-9
+- (team state tracking kept private; public numbers live in README/docs)
 
 **Branch:** `feature/aes-pnr-gds-virtuoso`
-**Tasks file:** `PERSON_B_TASKS.md`
+**Scope:** PNR, signoff, Virtuoso, FPGA demo
 
 **Interview Focus:**
 - Die area, core area, utilization tradeoff
@@ -172,7 +142,7 @@ virtuoso &  # should open licensed Virtuoso!
 | PipeCore ALU | AES Crypto SoC (New) |
 |---|---|
 | Simple ALU, 8 ops, 2-stage pipeline | Complex crypto, 10 rounds, S-Box LUT, GF math |
-| 168 cells | ~8,200 cells (50x bigger, shows you can handle larger design) |
+| 168 cells | 25,902 cells measured (~150x bigger design) |
 | No industry crypto relevance | AES is everywhere (IoT, security) - hot topic |
 | No Virtuoso advantage story | Virtuoso licensed = BIG ADVANTAGE (most students don't have) |
 | No speedup story | 227x speedup story = impressive pitch |
@@ -191,4 +161,3 @@ Resume: Shows progression - you went from small ALU to bigger crypto SoC, adding
 - Virtuoso guide ready
 - Team split docs ready
 - Next: Person A runs Yosys, Person B can start rehearsal PNR in parallel (no blocker)
->>>>>>> 8a7d0f170172da4de0ed845c06b98da844d9d5b2
