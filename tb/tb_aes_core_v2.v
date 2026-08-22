@@ -4,10 +4,11 @@
 //
 // Vectors:
 //   TV1  - NIST SP 800-38A F.1.1 block 1 (the FPGA-verified vector)
+//   FIPS - FIPS-197 Appendix B known-answer vector
 //   ZERO - AES-128(0,0), widely published known-answer value
 //   FF   - all-0xFF key & plaintext (derived with a pure-Python AES model
 //          cross-checked against TV1 and the ZERO known-answer)
-// All three verified in simulation on iverilog 11.0 and 12.0 (22 Aug 2026).
+// All four verified in simulation on iverilog 11.0 and 12.0 (22 Aug 2026).
 `timescale 1ns/1ps
 
 module tb_aes_core_v2;
@@ -89,6 +90,13 @@ module tb_aes_core_v2;
             128'hffffffffffffffffffffffffffffffff,
             128'hbcbf217cb280cf30b2517052193ab979,
             "ALL_FF");
+
+        // FIPS-197 Appendix B known-answer vector
+        do_encrypt(
+            128'h000102030405060708090a0b0c0d0e0f,
+            128'h00112233445566778899aabbccddeeff,
+            128'h69c4e0d86a7b0430d8cdb78070b4c55a,
+            "FIPS197_APP_B");
 
         $display("\n==================================");
         $display("SUMMARY: PASSED %0d / FAILED %0d", pass_cnt, fail_cnt);
