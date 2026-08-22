@@ -37,7 +37,7 @@ module tb_mbist;
     // Behavioral stuck-at fault injection:
     // when fault_en and the memory is being read at fault_addr_i, corrupt the
     // data on the MBIST read path (AND-out bit0 -> stuck-at-0).
-        reg [7:0] m_addr_d;
+    reg [7:0] m_addr_d;
     always @(posedge clk) m_addr_d <= m_addr;
     assign m_dout = (fault_en && !m_we && m_addr_d == fault_addr_i)
                   ? (u_wrap.m_dout & ~fault_bit)
