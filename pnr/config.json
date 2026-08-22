@@ -8,6 +8,7 @@
   "FP_SIZING": "relative",      // let OpenLane size the die from CORE_UTILIZATION
   "CORE_UTILIZATION": 54,
   "PL_TARGET_DENSITY_PCT": 54,
+  "GPL_CELL_PADDING": 4,
 
   "FP_PDN_VPITCH": 15,
   "FP_PDN_HPITCH": 15,
