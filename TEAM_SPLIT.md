@@ -1,3 +1,8 @@
+> HISTORICAL v1 planning document (kept for the team record).
+> Numbers below are v1-era and superseded by v2 (see README): 200 ns / 10 cycles,
+> 67.6% utilization, 745 FFs, 114-128x vs software, DFT + power analysis added.
+> The role split itself is still accurate.
+
 # TEAM SPLIT - AES-128 Crypto SoC
 ## 2-Person Team - Same as PipeCore-GDS
 

@@ -1,3 +1,10 @@
+[UPDATE 22 Aug 2026 - corrections to the log below]
+- The LEDs show the FINAL (last) ciphertext byte, not the MSB.
+- The 250x / 50,000 ns software figure used an assumed SW time and is retired.
+  Verified basis: 114x cycle-count vs measured mbedTLS, 128x vs fastest
+  published software (docs/SPEEDUP_BENCHMARK.md).
+- The 200 ns / 10-cycle measurement is unchanged and correct.
+[Original log follows]
 ==========================================
 AES-128 Hardware Crypto Accelerator SoC
 Python Demo - RTL-to-GDSII validated

@@ -4,7 +4,7 @@ AES SoC Python Demo - Laptop <-> FPGA via UART
 Protocol (matches aes_soc.v RTL):
   ENCRYPT: 0xAE + key(16B) + plaintext(16B) -> 0xAA status + cipher(16B)
   (0x55 sets the error flag only - NO UART reply; see aes_soc.v state 0)
-Demo shows 227x speedup vs software
+Demo shows 114x cycle-count speedup vs measured mbedTLS (verified basis, v2)
 """
 
 try:
@@ -32,7 +32,7 @@ def hex_to_bytes(h):
 
 
 def software_aes_encrypt(key_bytes, plain_bytes):
-    """Reference software AES (slow) - ~50,000 ns Python level"""
+    """Reference software AES (slow Python baseline for the demo)"""
     try:
         cipher = AES.new(key_bytes, AES.MODE_ECB)
         start = time.perf_counter_ns()
@@ -42,7 +42,7 @@ def software_aes_encrypt(key_bytes, plain_bytes):
     except Exception:
         # Fallback timing estimate
         time.sleep(0.00005)  # simulate 50us software aes on MCU
-        elapsed = 50000  # ns
+        elapsed = 1136 * (1e9/168e6)  # ns: 1136 cycles/block (mbedTLS measured) at 168 MHz
         if plain_bytes.hex().upper() == PLAIN_HEX:
             return hex_to_bytes(EXPECTED_CIPHER_HEX), elapsed
         return b"\x00" * 16, elapsed
@@ -70,7 +70,7 @@ def fpga_encrypt(ser, key_bytes, plain_bytes):
         cipher = resp[1:]
 
     wall_time = end_wall - start_wall
-    internal_hw_time = 220  # ns (11 cycles @ 50 MHz)
+    internal_hw_time = 200  # ns (10 cycles @ 50 MHz)
     return cipher, wall_time, internal_hw_time, status
 
 
@@ -82,9 +82,9 @@ def main():
     print(f"Key:      {KEY_HEX}")
     print(f"Plain:    {PLAIN_HEX}")
     print(f"Expected: {EXPECTED_CIPHER_HEX}")
-    print(f"\nSpecs: 50MHz, 11 cycles = 220ns/block, 25,902 cells (185,254 um2), 1mm2")
-    print(f"Software AES on MCU: ~50,000 ns/block")
-    print(f"Speedup: 227x FASTER")
+    print(f"\nSpecs: 50MHz, 10 cycles = 200ns/block (measured), v2: 67.6% util, 745 FFs, DFT-enabled")
+    print(f"Software AES on MCU (mbedTLS measured): 1136 cycles/block at 168 MHz = {elapsed:.0f} ns")
+    print(f"Speedup: ~114x fewer cycles than measured mbedTLS SW")
 
     try:
         ser = serial.Serial(SERIAL_PORT, BAUD_RATE, timeout=3)
@@ -110,7 +110,7 @@ def main():
         print(f"HW Status byte: {status.hex().upper()}")
         print(f"HW Cipher (from FPGA): {hw_ct.hex().upper()}")
         print(f"UART Round-trip wall time: {wall_ns/1e6:.2f} ms (includes 115200 baud overhead)")
-        print(f"Core encryption time: {core_ns} ns (11 cycles @50MHz)")
+        print(f"Core encryption time: {core_ns} ns (10 cycles @50MHz)")
 
         expected = hex_to_bytes(EXPECTED_CIPHER_HEX)
         if hw_ct == expected:
@@ -120,7 +120,7 @@ def main():
 
         speedup = sw_time_ns / core_ns if core_ns else 0
         print(f"\n>>> SPEEDUP: {sw_time_ns} ns (SW) / {core_ns} ns (HW) = {speedup:.0f}x FASTER <<<")
-        print("One-liner pitch ready: 'AES-128 hardware accelerator SoC designed in Verilog, verified against NIST FIPS-197, full RTL-to-GDSII using Cadence tools, demonstrated 227x speedup over software on FPGA.'")
+        print("One-liner pitch ready: 'AES-128 hardware accelerator SoC designed in Verilog, verified against NIST FIPS-197, full RTL-to-GDSII using Cadence tools, demonstrated 114x cycle-count reduction vs software AES.'")
 
         ser.close()
     else:
