@@ -32,7 +32,8 @@ module tb_mbist;
     ram_wrapper u_wrap (
         .clk(clk), .test_mode(test_mode),
         .f_we(f_we), .f_addr(f_addr), .f_din(f_din), .f_dout(f_dout),
-        .m_we(m_we), .m_addr(m_addr), .m_din(m_din), .m_dout(m_dout)
+        .m_we(m_we), .m_addr(m_addr), .m_din(m_din), .m_dout(m_dout),
+        .fault_en(fault_en), .fault_addr(fault_addr_i), .fault_mask(fault_mask)
     );
 
     initial clk = 0;
