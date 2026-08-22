@@ -1,0 +1,14 @@
+{
+  "meta": {
+    "version": 2,
+    "flow": ["Yosys.Synthesis", "AesDFT.ScanReplace"]
+  },
+  "DESIGN_NAME": "aes_soc",
+  "VERILOG_FILES": "dir::src/*.v",
+  "CLOCK_PORT": "clk",
+  "CLOCK_NET": "clk",
+  "CLOCK_PERIOD": 20,
+  "AES_DFT_MAX_LENGTH": 800,
+  "AES_DFT_CLOCK_MIXING": "no_mix",
+  "PNR_SDC_FILE": "dir::../timing/constraints.sdc"
+}
