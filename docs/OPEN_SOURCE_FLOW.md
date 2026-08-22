@@ -102,10 +102,10 @@ sta timing/sta.tcl
 
 Check reports:
 - Setup slack should be +ve (e.g., +X ns MET)
-- Hold may be -ve pre-CTS (normal, you saw -0.14ns in PipeCore, OpenLane will fix with `set_fix_hold`)
+- Hold may be -ve pre-CTS (normal; OpenLane repairs hold automatically) - measured +0.29 ns post-PNR
 - Critical path: will be through S-Box + MixColumn chain (~? ns)
 
-If setup negative at 20ns (50MHz), try 10ns? Actually 20ns is easier. If still setup violation, your AES is too slow - but our design is iterative 1 round, so longest path is single round (~? maybe 2-3ns in Sky130, so 20ns should have large positive slack like +15ns).
+Measured on the official run: setup +14.07 ns / hold +0.29 ns @ 20 ns.
 
 #### Phase 5-7: PNR with OpenLane 2 (Person B flow from PipeCore)
 
@@ -116,7 +116,7 @@ cd aes-crypto-soc
 mkdir -p pnr/src
 cp rtl/crypto/*.v rtl/peripheral/*.v rtl/top/*.v pnr/src/
 
-# Edit config.json if needed: Check PNR_SDC_FILE path, DIE_AREA 0 0 1000 1000
+# Note (v2): use relative sizing (FP_SIZING relative + FP_CORE_UTIL); absolute DIE_AREA inputs were silently ignored
 # For AES bigger than ALU, we use 1000x1000 um die (vs PipeCore predicted 3785um2 core area at 40%)
 # AES needs ~1mm2
 
@@ -161,7 +161,7 @@ Like original plan, after all simulation/PD done.
 - `fpga/basys3.xdc` constraints
 - Program and run `python3 sw/pc_demo.py`
 
-This demonstrates 227x speedup: 50k ns SW vs 220 ns HW.
+This demonstrates a 114x cycle-count reduction vs measured mbedTLS (1136 SW cycles vs 10 HW cycles per block).
 
 ### Key Differences from Cadence Flow in Original Note
 
@@ -181,7 +181,7 @@ Resume bullet can say: "Mixed flow: Open-source RTL-to-GDS (Yosys/OpenSTA/OpenLa
 - Cap/Slew/Delay terms (same)
 - Plus AES: SubBytes non-linear confusion, ShiftRows zero-cost wiring, MixColumns GF(2^8), Key expansion Rcon etc.
 - Iterative vs Pipelined tradeoff (8K vs 80K gates)
-- Why 50MHz? IoT power, still 227x faster
+- Why 50MHz? IoT power; 114-128x fewer cycles than software AES
 
 ### Git Workflow (Same as PipeCore)
 
