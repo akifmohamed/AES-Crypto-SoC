@@ -60,7 +60,7 @@ Files: `fpga/aes_soc_fpga.v` (wrapper: 100->50 MHz divider, LED latch, cycle cou
 
 - **Memory BIST:** March C- controller around the 256x8 SRAM (`rtl/mbist_ctrl.v`, `rtl/ram_wrapper.v`, `rtl/ram_256x8.v`). Verified in simulation with behavioral fault injection: clean memory passes; injected stuck-at-0 at address 42 bit 0 is detected and the failing address reported (`tb/tb_mbist.v`).
 - **Scan-cell mapping:** all 745 flip-flops replaced by scan flip-flops via OpenROAD `scan_replace`, executed as a custom OpenLane 2 flow step (`dft/openlane2_plugin/`) on the synthesized netlist — **zero RTL changes**. Flows: `pnr/config_probe_scan.json` (synthesis + scan-replace probe) and `pnr/config_scan.json` (full 79-step flow; completed 79/79 twice, runs `scan_v2_0822f` and `scan_v2_0822g`).
-- **Chain stitching - attempted and characterized:** OpenROAD `insert_dft` was invoked at two flow points (post-detailed-placement and post-CTS); the bundled OpenROAD build rejects scan-cell creation in both cases (DFT-0005 for every flop), so the released GDS holds scan-mapped flops with unconnected scan pins (745 x 2 = 1490, disclosed). Stitching requires a newer OpenROAD build. Reproduction and logs: `dft/README_scan_dft_plan.md`, `dft/run_scan_probe.sh`, `dft/dft_report.sh`.
+- **Chain stitching - attempted and characterized:** OpenROAD `insert_dft` was invoked at two flow points (post-detailed-placement and post-CTS); the bundled OpenROAD build rejects scan-cell creation in both cases (DFT-0005 for every flop), so the released GDS holds scan-mapped flops with unconnected scan pins (745 x 2 = 1490, disclosed). Stitching requires a newer OpenROAD build. Reproduction and logs: `dft/README.md`, `dft/run_scan_probe.sh`, `dft/dft_report.sh`.
 - **Power analysis:** OpenSTA on routed DEF + extracted SPEF, 3 corners — `dft/power_report.sh` (analysis, not silicon measurement; method disclosed).
 
 ---
@@ -159,7 +159,7 @@ FPGA: `vivado -mode batch -source fpga/build_basys3.tcl`, program, then `python3
 | **Nandikha M** | RTL design (15 NIST-verified modules), Yosys synthesis, OpenSTA timing |
 | **Akif Mohamed J** | Physical design + signoff, DFT (MBIST + scan flow), power analysis, FPGA demo, v2 testbenches |
 
-Division of labor documented in `TEAM_SPLIT.md`; branches `feature/aes-rtl-synth-timing` and `feature/aes-pnr-gds-virtuoso`.
+Division of labor reflected in the branch history: `feature/aes-rtl-synth-timing` (RTL, synthesis, STA) and `feature/aes-pnr-gds-virtuoso` (physical design, signoff, demo).
 
 ## History
 
